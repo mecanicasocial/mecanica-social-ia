@@ -1,0 +1,38 @@
+# Mecánica Social IA - CODEOWNERS
+# Define responsables por área del repositorio
+
+# GOBERNANZA Y POLÍTICAS
+# Cualquier cambio en estos archivos requiere aprobación de @LeodanZapata
+CONTRIBUTING.md          @LeodanZapata
+CODE_OF_CONDUCT.md       @LeodanZapata
+GOVERNANCE.md            @LeodanZapata
+AI_ETHICS.md             @LeodanZapata
+SECURITY.md              @LeodanZapata
+LICENSE.md               @LeodanZapata
+NOTICE                   @LeodanZapata
+
+# ARQUITECTURA Y DOCUMENTACIÓN
+# Cambios en la estructura deben ser revisados
+/docs/arquitectura/      @LeodanZapata
+README.md                @LeodanZapata
+
+# PROMPTS (Requiere revisión técnica + metodológica + ética)
+# Versiones v1.0.0+ requieren revisión completa de @LeodanZapata
+/prompts/                @LeodanZapata
+
+# MODELOS
+# Cualquier nueva dependencia o modelo debe aprobarse
+/models/                 @LeodanZapata
+
+# AGENTES
+# Cambios en lógica de agentes requieren revisión técnica
+/agents/                 @LeodanZapata
+
+# EVALUACIONES Y EXPERIMENTOS
+# Cambios en criterios de evaluación requieren aprobación
+/evaluations/            @LeodanZapata
+/experiments/            @LeodanZapata
+
+# CI/CD Y SEGURIDAD
+# Workflows y acceso requieren revisión cuidadosa
+/.github/                @LeodanZapata
