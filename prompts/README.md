@@ -3,6 +3,14 @@
 Esta carpeta contiene los prompts versionados utilizados por
 `mecanica-social-ia`.
 
+prompts/
+├── README.md                          ← Guía de uso
+├── esquema-prompt.yaml                ← Template comentado
+├── formulario-intake-v1.0.0.yaml      ← Ejemplo real, aprobado
+├── resumidor-solicitudes-v0.1.0.yaml  ← Ejemplo en desarrollo
+└── .evaluations/
+    └── test-casos-intake.yaml         ← Casos de prueba
+
 ## Propósito
 
 Mantener los prompts como artefactos versionables, trazables,
