@@ -99,6 +99,28 @@ Merge
 Documentación
    ↓
 Release o promoción
+
+┌─────────────────────────────────────────────┐
+│ CICLO DE VIDA DE UN COMPONENTE DE IA        │
+└─────────────────────────────────────────────┘
+
+ENTRADA: Necesidad institucional
+    ↓
+PROPUESTA: Define caso de uso + área responsable
+    ↓
+ANÁLISIS: Classifica riesgo (bajo/medio/alto)
+    ↓
+DESARROLLO: Crea prompt/modelo/agente
+    ↓
+PRUEBAS: Ejecuta test cases + evaluación
+    ↓
+REVISIÓN: ✓ Técnica ✓ Metodológica ✓ Ética ✓ Datos
+    ↓
+APROBACIÓN: Decisión formal (sí/restricción/no)
+    ↓
+IMPLEMENTACIÓN CONTROLADA: Monitoreo en producción
+    ↓
+SEGUIMIENTO: Métricas + incidentes
 ```
 
 El nivel de control debe ser proporcional al riesgo e impacto del cambio.
