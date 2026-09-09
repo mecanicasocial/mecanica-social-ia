@@ -318,13 +318,14 @@ restringido: limitado a determinados contextos o personas.
 obsoleto: sustituido por una versión posterior.
 suspendido: uso interrumpido mientras se analiza un riesgo.
 retirado: no debe utilizarse.
-Documentos de gobernanza
-​Contribuciones​
-CODE_OF_CONDUCT.md
-​Gobernanza​
-AI_ETHICS.md
-​Gobernanza de datos​
-​Seguridad​
+Documentos de gobernanza​
+- [Contribuciones](CONTRIBUTING.md)
+- [Código de conducta](CODE_OF_CONDUCT.md)
+- [Gobernanza](GOVERNANCE.md)
+- [Ética de IA](AI_ETHICS.md)
+- [Gobernanza de datos](DATA_GOVERNANCE.md)
+- [Seguridad](SECURITY.md)
+
 Contribuciones
 Las contribuciones deberán:
 
