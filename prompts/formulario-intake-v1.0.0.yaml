@@ -1,0 +1,95 @@
+id: formulario-intake
+version: 1.0.0
+estado: aprobado
+autor: nombre
+fecha_creacion: 2026-09-06
+fecha_revision: 2026-09-06
+
+proposito: |
+  Procesar solicitudes de participación en programas de formación
+  y extraer información estructurada de beneficiarios.
+
+area_responsable: "Formación Institucional"
+personas_afectadas: ["Beneficiarios", "Coordinadores de programas"]
+nivel_riesgo: bajo
+
+datos_permitidos:
+  - Nombre
+  - Email
+  - Teléfono
+  - Motivación
+  
+datos_prohibidos:
+  - Datos bancarios
+  - Información de vulnerabilidad sensible
+  - Datos de familia
+
+fuentes_autorizadas:
+  - Formulario web institucional
+  - Base de datos interna aprobada
+
+limitaciones_conocidas:
+  - No valida direcciones fuera de Chile
+  - Sensible a caracteres especiales
+  
+prompt_text: |
+  Eres un asistente que procesa solicitudes de capacitación.
+  
+  Tu tarea:
+  1. Extrae: nombre, email, teléfono, razón de interés
+  2. Estructura la salida en JSON
+  3. Marca campos faltantes con "NO_PROPORCIONADO"
+  
+  NUNCA:
+  - Inventes información
+  - Edites el formato de email/teléfono
+  - Hables de dinero o costos
+  
+  Input: {% verbatim %}{{ texto_formulario }}{% endverbatim %}
+  Output format:
+  {
+    "nombre": "...",
+    "email": "...",
+    "telefono": "...",
+    "interes": "..."
+  }
+
+ejemplos:
+  - input: |
+      Hola, me llamo Carlos. Quiero participar en el programa de
+      liderazgo. Mi correo es carlos@mail.com y mi teléfono es
+      +56 9 1234 5678.
+    expected: |
+      {
+        "nombre": "Carlos",
+        "email": "carlos@mail.com",
+        "telefono": "+56 9 1234 5678",
+        "interes": "Programa de liderazgo"
+      }
+
+evaluacion:
+  metricas:
+    - tipo: exactitud_extraccion
+      objetivo: ≥95%
+      metodo: Comparar con ground truth manual
+    - tipo: coherencia_estructura
+      objetivo: 100%
+      metodo: JSON válido en todas las respuestas
+      
+  criterios_aceptacion:
+    - "Todos los campos requeridos presentes"
+    - "No hay respuestas vacías cuando info disponible"
+    - "Formato JSON correcto"
+
+supervison_humana:
+  requerida: sí
+  forma: "Revisor manual valida 10% de respuestas"
+  frecuencia: "Semanal o si error > 5%"
+  responsable: "Coordinador de Formación"
+
+revisiones:
+  - fecha: 2026-09-06
+    version: 1.0.0
+    cambio: "Aprobada versión inicial"
+    revisado_por: "Equipo Técnico"
+    aprobado_por: "Responsable Gobernanza"
