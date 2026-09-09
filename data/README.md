@@ -4,6 +4,11 @@ Este es especialmente importante.
 Esta carpeta contiene esquemas, muestras y definiciones relacionadas
 con los datos utilizados por `mecanica-social-ia`.
 
+La política institucional de datos del sistema de IA está en
+[`DATA_GOVERNANCE.md`](../DATA_GOVERNANCE.md). Esta carpeta no sustituye
+esa política: materializa esquemas, muestras autorizadas y políticas
+operativas coherentes con ella.
+
 ## Propósito
 
 Definir cómo se estructuran, documentan y utilizan los datos dentro
