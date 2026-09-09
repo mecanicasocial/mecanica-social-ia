@@ -1,0 +1,47 @@
+{
+  "schema_version": "1.0.0",
+  "resultado_id": "eval-plantilla-000",
+  "fecha_utc": null,
+  "componente": {
+    "tipo": "prompt",
+    "id": "ejemplo-componente",
+    "version": "0.0.0",
+    "ruta": "prompts/ejemplo-v0.0.0.yaml",
+    "nivel_riesgo_declarado": null
+  },
+  "suite": {
+    "id": "ejemplo-suite",
+    "version": "0.0.0",
+    "ruta": "evaluations/casos-prueba/ejemplo.yaml",
+    "n_casos": 0
+  },
+  "ejecucion": {
+    "modo": "offline",
+    "harness_ref": "evaluations/harness.md",
+    "modelo_ref": null,
+    "entorno": null,
+    "semilla": null,
+    "ejecutado_por": null,
+    "notas": "PLANTILLA: no constituye evaluación ejecutada ni evidencia de desempeño."
+  },
+  "metricas": [],
+  "resumen": {
+    "n_casos": 0,
+    "n_pasados": 0,
+    "n_fallidos": 0,
+    "tasa_exito_primaria": null,
+    "umbrales_obligatorios_ok": false,
+    "alcance": "plantilla",
+    "apto_para_aprobacion_operativa": false
+  },
+  "casos_detalle": [],
+  "limitaciones": [
+    "Este archivo es solo una plantilla de esquema.",
+    "No inventar tasas de éxito ni usarlo como prueba de aprobación."
+  ],
+  "decision_institucional": {
+    "estado": "no_aplicable",
+    "referencia": null,
+    "notas": "Completar solo tras corrida real y proceso de gobernanza."
+  }
+}
