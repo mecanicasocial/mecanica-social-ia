@@ -37,7 +37,7 @@ La implementación en código es opcional hasta que exista un entorno autorizado
 | `prompts/*.yaml` | Metadatos, ejemplos y criterios del prompt |
 | `experiments/` | Exploración; no sustituye evaluación formal |
 
-**Nota:** el archivo `prompts/.evaluations/test-casos-intake.yaml` contiene hoy un borrador de script mal ubicado. El harness canónico y los casos de prueba deben vivir bajo `evaluations/`, no mezclados como YAML inválido en `prompts/`.
+**Nota:** un borrador erróneo bajo `prompts/.evaluations/` fue retirado. El harness canónico y los casos de prueba viven solo bajo `evaluations/`.
 
 ## 4. Alcance funcional
 
@@ -223,9 +223,9 @@ Se considerará usable como herramienta de apoyo cuando:
 | Elemento | Estado |
 |---|---|
 | Diseño / contrato (`harness.md`) | Documentado |
-| Implementación `harness.py` | Pendiente / no requerida para cerrar el diseño |
-| Suites de casos | Estructura prevista; contenido inicial mínimo opcional |
-| CI smoke-test | Pendiente |
+| Implementación `harness.py` | MVP offline disponible |
+| Suites de casos | `casos-prueba/intake-test-set.yaml` (inicial) |
+| CI smoke-test | `.github/workflows/eval-offline.yml` |
 
 ## 11. Referencias
 

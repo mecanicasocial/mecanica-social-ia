@@ -159,9 +159,10 @@ Contenido:
   datos_permitidos: [nombre, email, teléfono, interés]
   datos_prohibidos: [datos bancarios, dirección exacta]
 
-Pruebas: evaluaciones/harness.py marca 96% de éxito
+Pruebas: evaluations/harness.py en modo offline (estructura OK; no aprueba producción)
+  + corrida con modelo cuando exista proveedor autorizado
 Revisión: @LeodanZapata verifica técnica + metodología
-Decisión: ✓ APROBADO (con supervisión humana del 10% de casos)
+Decisión: solo tras evidencia y gobernanza (offline ≠ aprobado operativo)
 
 🔴 Ejemplo 3: Prompt ALTO (se aprueba en 5+ días)
 Nombre: seleccionador-beneficiarios-v1.0.0.yaml
@@ -194,8 +195,9 @@ Pregunta	Contacto
 ¿Falla el test ético?	Documenta en issue y abre discusión
 ¿Tengo emergencia?	@LeodanZapata responde en 4 horas
 ¿Quiero aportar?	Lee CONTRIBUTING.md primero
-Última actualización: 2024-09-06
+Última actualización: 2026-09-10
 Responsable: @LeodanZapata
-Próxima revisión: 2024-12-06 o tras primer incidente
+Próxima revisión: tras primer piloto o incidente
+Ver también: PRACTICO.md (MVP ejecutable)
 
 
