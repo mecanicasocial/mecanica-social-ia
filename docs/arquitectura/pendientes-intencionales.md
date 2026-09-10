@@ -18,38 +18,41 @@ Si falta un acuerdo, un vendor, un segundo maintainer o un secreto de organizaci
 
 | ID | Pendiente | Por qué es intencional | Estado en repo | Desbloqueo (criterio verificable) | Referencias |
 |---|---|---|---|---|---|
-| PEND-001 | Vendor productivo + **INT-002** validado | Requiere **autorización institucional** (proveedor, datos en tránsito, evaluación y adopción) | Sin vendor en `models/`; INT-002 en estado **Propuesto** | Autorización institucional + registro del proveedor + evidencia de evaluación + INT-002 al menos en **Validada** | `integraciones.md`, `models/README.md`, `DATA_GOVERNANCE.md` |
-| PEND-002 | **INT-001** confirmado con Escuela | Requiere **confirmación bilateral** con `mecanica-social-escuela` (contrato, datos, responsabilidades) | INT-001 en estado **Propuesto**; propósito y datos “Por definir” | Confirmación bilateral documentada (sin inventar API) + actualización del inventario de integraciones | `integraciones.md`, `DATA_GOVERNANCE.md` |
-| PEND-003 | Teams / segundo maintainer en `CODEOWNERS` | **Four-eyes real** con más de una persona (roles de `GOVERNANCE.md` no colapsados en un solo actor) | `CODEOWNERS` y `NOTICE` solo con `@LeodanZapata` | Segundo maintainer o Team de GitHub real en `CODEOWNERS` / roles, sin inventar handles | `CODEOWNERS`, `NOTICE`, `GOVERNANCE.md` |
-| PEND-004 | CI job **model** | Solo con **secrets de organización** en el repo canónico; **no** en forks | Existe smoke offline (`eval-offline.yml`); **no** hay job model | Workflow model en repo canónico, secrets de org, guards anti-fork; separado del smoke offline | `evaluations/harness.md`, `.github/workflows/`, `infra/README.md`, `SECURITY.md` |
+| PEND-001 | Vendor productivo + **INT-002** validado | Requiere **autorización institucional** (proveedor, datos en tránsito, evaluación y adopción) | Solo slot de **evaluación** `models/openai-compatible-eval/` (propuesto); INT-002 no productiva | Autorización institucional + registro del proveedor + evidencia de evaluación + INT-002 al menos en **Validada** | `integraciones.md`, `models/README.md`, ADR-002, `DATA_GOVERNANCE.md` |
+| PEND-002 | **INT-001** confirmado con Escuela | Requiere **confirmación bilateral** con `mecanica-social-escuela` (contrato, datos, responsabilidades) | Contrato **provisional** + schema/muestra sintéticos; falta confirmación Escuela | Confirmación bilateral documentada (sin inventar API productiva) + actualización del inventario | `integraciones.md`, `contratos/INT-001-escuela.md`, `DATA_GOVERNANCE.md` |
+| PEND-003 | Teams / segundo maintainer en `CODEOWNERS` | **Four-eyes real** con más de una persona (roles de `GOVERNANCE.md` no colapsados en un solo actor) | `CODEOWNERS` y `NOTICE` solo con `@LeodanZapata`; roles documentados en `roles-revision.md` | Segundo maintainer o Team de GitHub real en `CODEOWNERS` / roles, sin inventar handles | `CODEOWNERS`, `NOTICE`, `roles-revision.md`, `GOVERNANCE.md` |
+| PEND-004 | CI job **model** | Solo con **secrets de organización** en el repo canónico; **no** en forks | Harness local soporta modo `model`; CI solo smoke offline (`eval-offline.yml`); **no** hay job model | Workflow model en repo canónico, secrets de org, guards anti-fork; separado del smoke offline | `evaluations/harness.md`, `.github/workflows/`, `infra/secretos-y-entorno.md`, ADR-002, `SECURITY.md` |
 
 ## 4. Detalle
 
 ### PEND-001 — Vendor productivo + INT-002 validado
 
-- **Qué no hay hoy:** carpeta de proveedor en `models/`, `config.yaml` / model-card productivos, cliente de inferencia operativo, ni INT-002 más allá de “Propuesto”.
+- **Qué hay hoy:** slot de evaluación `models/openai-compatible-eval/` (estado propuesto), cliente `src/ms_ia/model_client.py` y modo `model` del harness con secretos por entorno (ADR-002).
+- **Qué no hay hoy:** proveedor **productivo** autorizado, ni INT-002 Validada/Operativa.
 - **Por qué no se completa aquí:** la adopción de un proveedor y el envío de datos a terceros exigen autorización institucional y controles de datos (`DATA_GOVERNANCE.md`).
-- **Qué sí puede existir antes del desbloqueo:** documentación de *cómo* se documentaría un proveedor; evaluaciones sintéticas offline; ejemplos no productivos sin secretos.
+- **Qué sí puede existir antes del desbloqueo:** slot y model-card de evaluación; corridas model con secretos locales; evaluaciones sintéticas offline.
 
 ### PEND-002 — INT-001 confirmado con Escuela
 
-- **Qué no hay hoy:** interfaz, entradas/salidas, autenticación ni acuerdo de datos con Escuela.
-- **Por qué no se completa aquí:** el contrato es bilateral; inventarlo rompería la política de no presuponer APIs ni campos no confirmados.
-- **Qué sí puede existir antes del desbloqueo:** diagrama conceptual Escuela ↔ IA; plantilla de contrato de integración; estado **Propuesto** en el inventario.
+- **Qué hay hoy:** contrato **provisional** `contratos/INT-001-escuela.md` y schema/muestra sintéticos bajo `data/`.
+- **Qué no hay hoy:** confirmación bilateral, API productiva ni acuerdo de datos operativos con Escuela.
+- **Por qué no se completa aquí:** el contrato definitivo es bilateral; inventar la API productiva rompería la política de no presuponer campos no confirmados.
+- **Qué sí puede existir antes del desbloqueo:** contrato provisional; schema sintético; diagrama conceptual Escuela ↔ IA.
 
 ### PEND-003 — Teams / segundo maintainer en CODEOWNERS
 
-- **Qué hay hoy:** un único owner en `CODEOWNERS` y los tres roles de `NOTICE` concentrados en `@LeodanZapata`.
-- **Por qué es intencional el gap:** el four-eyes de `GOVERNANCE.md` (revisión técnica / metodológica / ética / independiente) requiere **personas distintas** cuando el riesgo lo exige; no se inventan cuentas ni Teams.
-- **Qué sí puede existir antes del desbloqueo:** políticas de roles; CODEOWNERS funcional con el owner actual; comentario de que el segundo maintainer está pendiente.
+- **Qué hay hoy:** un único owner en `CODEOWNERS` y roles concentrados en `@LeodanZapata`; separación de roles documentada en `docs/arquitectura/roles-revision.md` (excepción dual temporal).
+- **Por qué es intencional el gap:** el four-eyes de `GOVERNANCE.md` requiere **personas distintas** cuando el riesgo lo exige; no se inventan cuentas ni Teams.
+- **Qué sí puede existir antes del desbloqueo:** políticas y matriz de roles; CODEOWNERS funcional con el owner actual; registros de decisión en `docs/gobernanza/registros/`.
 
 ### PEND-004 — CI job model
 
-- **Qué hay hoy:** smoke offline en `.github/workflows/eval-offline.yml` (sin secretos ni red de modelo).
-- **Qué no hay:** job de inferencia con proveedor.
+- **Qué hay hoy:** smoke offline en `.github/workflows/eval-offline.yml`; harness local con modo `model` (secretos por env, ADR-002).
+- **Qué no hay:** job CI de inferencia con proveedor.
 - **Distinción:**
-  - **Smoke / offline:** implementado en P1; sin secretos ni red.
-  - **Job model:** implica credenciales de proveedor → solo secrets de **organización**, en el repositorio canónico, **nunca** expuestos a forks no confiables.
+  - **Smoke / offline:** implementado; sin secretos ni red.
+  - **Modo model local:** disponible con `MS_IA_MODEL_*`; no es CI.
+  - **Job model CI:** implica credenciales de proveedor → solo secrets de **organización**, en el repositorio canónico, **nunca** expuestos a forks no confiables.
 - **Por qué no se inventa el job model aquí:** sin secrets de org y sin política de guards, un job model sería inseguro o simbólico.
 - **Desbloqueo mínimo:** secretos configurados en la org; condición de ejecución que excluya forks; separación explícita del job offline.
 
@@ -94,3 +97,6 @@ Al desbloquear cada pendiente estructural, registrar la decisión en `docs/arqui
 - `evaluations/harness.md`
 - `infra/README.md`
 - `.github/workflows/README.md`
+- `docs/arquitectura/roles-revision.md`
+- `docs/arquitectura/contratos/INT-001-escuela.md`
+- `infra/secretos-y-entorno.md`

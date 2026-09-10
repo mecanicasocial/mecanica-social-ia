@@ -39,8 +39,4 @@ jobs:
       - name: Show result summary
         run: |
           ls -la evaluations/resultados/
-<<<<<<< HEAD
           python -c "import json,glob; p=sorted(glob.glob('evaluations/resultados/*-offline.json'))[-1]; r=json.load(open(p)); print(p); print(r['resumen']); assert r['resumen']['apto_para_aprobacion_operativa'] is False"
-=======
-          python -c "import json,glob; p=sorted(glob.glob('evaluations/resultados/*-offline.json'))[-1]; r=json.load(open(p)); print(p); print(r['resumen'])"
->>>>>>> origin/main

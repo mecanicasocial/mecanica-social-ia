@@ -1,8 +1,8 @@
 # Prompts
 
-Prompts versionados de `mecanica-social-ia`.
+Esta carpeta contiene los prompts versionados utilizados por
+`mecanica-social-ia`.
 
-<<<<<<< HEAD
 ```text
 prompts/
 ├── README.md                          ← Guía de uso
@@ -12,42 +12,24 @@ prompts/
 
 > **Nota:** No hay harness ni suites de prueba bajo `prompts/`.
 > La evidencia vive solo en `evaluations/`.
-=======
-## Inventario actual
->>>>>>> origin/main
 
-| Archivo | Estado | Notas |
-|---|---|---|
-| `esquema-prompt.yaml` | plantilla | Metadatos mínimos |
-| `formulario-intake-v1.0.0.yaml` | **prueba** | Riesgo medio; sin aprobación operativa |
+## Propósito
 
-No existe aún `resumidor-solicitudes`. No hay scripts de evaluación bajo `prompts/`.
+Mantener los prompts como artefactos versionables, trazables,
+revisables y evaluables.
 
-## Convención de nombre
+## Contenido
 
-```text
-<id>-v<MAJOR.MINOR.PATCH>.yaml
-```
+Aquí se almacenarán:
 
-<<<<<<< HEAD
 - Prompts en desarrollo.
 - Prompts en evaluación / prueba.
 - Prompts aprobados (solo con evidencia formal).
 - Versiones históricas de prompts.
 - Esquemas y convenciones para su definición (cuando existan).
-=======
-## Estados preferidos (español)
->>>>>>> origin/main
 
-- `borrador`
-- `prueba`
-- `aprobado`
-- `restringido`
-- `obsoleto`
-- `suspendido`
-- `retirado`
+## Versionado
 
-<<<<<<< HEAD
 Los prompts utilizarán versionado semántico:
 
 `MAJOR.MINOR.PATCH`
@@ -75,7 +57,8 @@ Mapeo orientativo si aparece vocabulario en inglés en borradores antiguos:
 
 **Regla:** `aprobado` exige evidencia formal bajo `evaluations/` (suite,
 corrida con modo declarado y revisión según riesgo). Un ejemplo embebido
-en el YAML del prompt **no** basta.
+en el YAML del prompt **no** basta. Offline y model score **no** equivalen
+a aprobación operativa.
 
 ## Ejemplo actual: `formulario-intake-v1.0.0.yaml`
 
@@ -90,6 +73,20 @@ en el YAML del prompt **no** basta.
 No utilizar este archivo como componente productivo ni presentarlo como
 autorizado institucionalmente.
 
+## Evaluación rápida
+
+```bash
+# Offline (sin secretos)
+python evaluations/harness.py \
+  --component prompts/formulario-intake-v1.0.0.yaml \
+  --suite evaluations/casos-prueba/intake-test-set.yaml \
+  --mode offline \
+  --output evaluations/resultados
+
+# Model (requiere env; ver infra/secretos-y-entorno.md)
+# python evaluations/harness.py ... --mode model --model-ref models/openai-compatible-eval
+```
+
 ## Reglas
 
 - Cada prompt debe tener un identificador único.
@@ -98,13 +95,9 @@ autorizado institucionalmente.
 - Los prompts `aprobado` deben contar con evaluaciones formales archivadas.
 - No incorporar datos personales reales, credenciales, tokens o información sensible.
 - No colocar scripts de harness ni suites bajo `prompts/`.
-=======
-Un prompt **no** pasa a `aprobado` solo por parecer plausible ni por una corrida offline.
->>>>>>> origin/main
 
 ## Evaluación (única ubicación de evidencia)
 
-<<<<<<< HEAD
 Las pruebas, el harness, las suites y los resultados de los prompts se
 gestionan **solo** en:
 
@@ -121,25 +114,12 @@ evaluations/
 | Metadatos, `prompt_text`, ejemplos ilustrativos | `prompts/*.yaml` |
 | Suites reutilizables, harness, métricas, resultados | `evaluations/` |
 
-Cualquier borrador histórico bajo `prompts/.evaluations/` se eliminó en
-P0 por estar mal ubicado (Python con extensión `.yaml`) y por poder
-sugerir “aprobado para producción” sin medir el modelo. El harness
-canónico se define en `evaluations/harness.md`.
-=======
-Las suites y el harness viven en `evaluations/`:
+Cualquier borrador histórico bajo `prompts/.evaluations/` se eliminó por
+estar mal ubicado y por poder sugerir “aprobado para producción” sin medir
+el modelo. El harness canónico se define en `evaluations/harness.md`.
 
-```bash
-python evaluations/harness.py \
-  --component prompts/formulario-intake-v1.0.0.yaml \
-  --suite evaluations/casos-prueba/intake-test-set.yaml \
-  --mode offline \
-  --output evaluations/resultados
-```
->>>>>>> origin/main
+## Relación con otros componentes
 
-## Reglas
-
-<<<<<<< HEAD
 Los prompts pueden ser utilizados por:
 
 - `agents/`
@@ -152,9 +132,3 @@ Los prompts pueden ser utilizados por:
 Un prompt es un componente versionable del sistema y debe tratarse con
 el mismo nivel de trazabilidad que el código. La gobernanza decide el
 estado; el harness solo mide.
-=======
-- Identificador y versión trazables.
-- Cambios relevantes vía Issue y Pull Request.
-- Sin datos personales reales, credenciales ni secretos.
-- Ver `esquema-prompt.yaml` al crear uno nuevo.
->>>>>>> origin/main

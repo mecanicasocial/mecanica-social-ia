@@ -1,30 +1,19 @@
 #!/usr/bin/env python3
 """
-<<<<<<< HEAD
-Harness de evaluación offline para mecanica-social-ia.
-=======
 Harness de evaluación para mecanica-social-ia.
->>>>>>> origin/main
 
 Contrato: evaluations/harness.md
 - Mide y reporta; no otorga aprobación institucional.
 - Modo offline: validación estructural (componente + suite).
-<<<<<<< HEAD
-- No llama a proveedores de modelos ni lee secretos.
-=======
 - Modo model: llama a un proveedor vía src/ms_ia (secretos solo por env).
 - apto_para_aprobacion_operativa es siempre false en este harness.
->>>>>>> origin/main
 """
 
 from __future__ import annotations
 
 import argparse
 import json
-<<<<<<< HEAD
-=======
 import re
->>>>>>> origin/main
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
@@ -40,13 +29,10 @@ except ImportError:  # pragma: no cover
     sys.exit(2)
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
-<<<<<<< HEAD
-=======
 SRC_ROOT = REPO_ROOT / "src"
 if str(SRC_ROOT) not in sys.path:
     sys.path.insert(0, str(SRC_ROOT))
 
->>>>>>> origin/main
 CAMPOS_COMPONENTE_MINIMOS = (
     "id",
     "version",
@@ -82,8 +68,6 @@ def _as_expected_obj(expected: Any) -> tuple[dict[str, Any] | None, str | None]:
     return None, "expected debe ser objeto o string JSON"
 
 
-<<<<<<< HEAD
-=======
 def _parse_model_json(text: str) -> tuple[dict[str, Any] | None, str | None]:
     """Extrae un objeto JSON de la salida del modelo (raw o en fence)."""
     if not text or not str(text).strip():
@@ -160,7 +144,6 @@ def _no_invention(
     return True
 
 
->>>>>>> origin/main
 def validate_component(component: dict[str, Any], path: Path) -> list[dict[str, Any]]:
     findings: list[dict[str, Any]] = []
     for field in CAMPOS_COMPONENTE_MINIMOS:
@@ -231,13 +214,9 @@ def validate_component(component: dict[str, Any], path: Path) -> list[dict[str, 
             )
             continue
         has_io = "input" in ej and "expected" in ej
-<<<<<<< HEAD
-        obj, err = _as_expected_obj(ej.get("expected")) if has_io else (None, "faltan input/expected")
-=======
         obj, err = (
             _as_expected_obj(ej.get("expected")) if has_io else (None, "faltan input/expected")
         )
->>>>>>> origin/main
         ok = has_io and obj is not None
         findings.append(
             {
@@ -259,13 +238,9 @@ def validate_component(component: dict[str, Any], path: Path) -> list[dict[str, 
     return findings
 
 
-<<<<<<< HEAD
-def validate_suite(suite: dict[str, Any], path: Path) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
-=======
 def validate_suite(
     suite: dict[str, Any], path: Path
 ) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
->>>>>>> origin/main
     findings: list[dict[str, Any]] = []
     case_results: list[dict[str, Any]] = []
 
@@ -352,27 +327,11 @@ def validate_suite(
             else:
                 checks.append({"check": "campos_requeridos", "ok": True})
 
-<<<<<<< HEAD
-        failed = [c for c in checks if not c.get("ok")]
-        case_results.append(
-            {
-                "caso_id": cid,
-                "tags": caso.get("tags") or [],
-                "estado": "pass" if ok else "fail",
-                "ok": ok,
-                "metricas_locales": {},
-                "mensaje": None
-                if ok
-                else "; ".join(
-                    f"{c.get('check')}: {c.get('detalle') or 'fail'}" for c in failed
-                ),
-=======
         case_results.append(
             {
                 "caso_id": cid,
                 "ok": ok,
                 "tags": caso.get("tags") or [],
->>>>>>> origin/main
                 "checks": checks,
             }
         )
@@ -380,8 +339,6 @@ def validate_suite(
     return findings, case_results
 
 
-<<<<<<< HEAD
-=======
 def _render_prompt(prompt_text: str, user_input: str) -> str:
     text = prompt_text or ""
     replacements = {
@@ -539,7 +496,6 @@ def run_model_cases(
     return results, totals
 
 
->>>>>>> origin/main
 def build_result(
     component: dict[str, Any],
     component_path: Path,
@@ -549,62 +505,14 @@ def build_result(
     suite_findings: list[dict[str, Any]],
     case_results: list[dict[str, Any]],
     ejecutado_por: str,
-<<<<<<< HEAD
-=======
     *,
     mode: str = "offline",
     model_ref: str | None = None,
     model_stats: dict[str, Any] | None = None,
->>>>>>> origin/main
 ) -> dict[str, Any]:
     n_casos = len(case_results)
     n_pass = sum(1 for c in case_results if c.get("ok"))
     n_fail = n_casos - n_pass
-<<<<<<< HEAD
-    structural_ok = all(f.get("ok") for f in comp_findings + suite_findings) and n_fail == 0
-    tasa = (n_pass / n_casos * 100.0) if n_casos else 0.0
-
-    metricas = [
-        {
-            "id": "esquema_componente_valido",
-            "nombre": "Esquema de componente válido",
-            "valor": all(f.get("ok") for f in comp_findings),
-            "unidad": "booleano",
-            "umbral": True,
-            "umbral_cumplido": all(f.get("ok") for f in comp_findings),
-            "metodo": "validación offline de campos mínimos",
-            "n_casos": 0,
-            "limitaciones": "No evalúa calidad del modelo",
-        },
-        {
-            "id": "json_valido",
-            "nombre": "Expected de casos es JSON objeto válido",
-            "valor": round(tasa, 2),
-            "unidad": "porcentaje",
-            "umbral": 100,
-            "umbral_cumplido": n_fail == 0 and n_casos > 0,
-            "metodo": "parseo de expected en suite",
-            "n_casos": n_casos,
-            "limitaciones": "Valida fixtures, no salidas del modelo",
-        },
-        {
-            "id": "campos_requeridos_presentes",
-            "nombre": "Campos requeridos en expected",
-            "valor": round(tasa, 2),
-            "unidad": "porcentaje",
-            "umbral": 100,
-            "umbral_cumplido": n_fail == 0 and n_casos > 0,
-            "metodo": "presencia de claves en expected",
-            "n_casos": n_casos,
-            "limitaciones": "No compara con output de modelo",
-        },
-    ]
-
-    now = datetime.now(timezone.utc)
-    resultado_id = f"eval-{now.strftime('%Y%m%d')}-offline"
-    rel_comp = str(component_path.relative_to(REPO_ROOT)) if component_path.is_relative_to(REPO_ROOT) else str(component_path)
-    rel_suite = str(suite_path.relative_to(REPO_ROOT)) if suite_path.is_relative_to(REPO_ROOT) else str(suite_path)
-=======
     structural_ok = all(f.get("ok") for f in comp_findings + suite_findings)
 
     if mode == "offline":
@@ -756,7 +664,6 @@ def build_result(
         if suite_path.is_relative_to(REPO_ROOT)
         else str(suite_path)
     )
->>>>>>> origin/main
 
     return {
         "schema_version": "1.0.0",
@@ -777,18 +684,6 @@ def build_result(
             "n_casos": n_casos,
         },
         "ejecucion": {
-<<<<<<< HEAD
-            "modo": "offline",
-            "harness_ref": "evaluations/harness.md",
-            "modelo_ref": None,
-            "entorno": "local",
-            "semilla": None,
-            "ejecutado_por": ejecutado_por,
-            "notas": (
-                "Corrida offline estructural. No llama a modelos. "
-                "No constituye evidencia de exactitud de extracción ni aprobación operativa."
-            ),
-=======
             "modo": mode,
             "harness_ref": "evaluations/harness.md",
             "modelo_ref": model_ref,
@@ -796,7 +691,6 @@ def build_result(
             "semilla": None,
             "ejecutado_por": ejecutado_por,
             "notas": notas,
->>>>>>> origin/main
         },
         "metricas": metricas,
         "resumen": {
@@ -804,13 +698,8 @@ def build_result(
             "n_pasados": n_pass,
             "n_fallidos": n_fail,
             "tasa_exito_primaria": round(tasa, 2),
-<<<<<<< HEAD
-            "umbrales_obligatorios_ok": structural_ok,
-            "alcance": "estructural",
-=======
             "umbrales_obligatorios_ok": thresholds_ok,
             "alcance": alcance,
->>>>>>> origin/main
             "apto_para_aprobacion_operativa": False,
         },
         "validacion_estructural": {
@@ -818,15 +707,7 @@ def build_result(
             "suite": suite_findings,
         },
         "casos_detalle": case_results,
-<<<<<<< HEAD
-        "limitaciones": [
-            "Modo offline: no evalúa el comportamiento del modelo.",
-            "Los expected son fixtures sintéticas, no predicciones.",
-            "apto_para_aprobacion_operativa es siempre false en este modo.",
-        ],
-=======
         "limitaciones": limitaciones,
->>>>>>> origin/main
         "decision_institucional": {
             "estado": "no_aplicable",
             "referencia": None,
@@ -835,11 +716,6 @@ def build_result(
     }
 
 
-<<<<<<< HEAD
-def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(
-        description="Harness offline de mecanica-social-ia (no aprueba uso operativo)."
-=======
 def _resolve_model_ref(model_ref: str | None) -> tuple[Path, dict[str, Any], str]:
     ref = model_ref or "models/openai-compatible-eval"
     path = Path(ref)
@@ -865,7 +741,6 @@ def _resolve_model_ref(model_ref: str | None) -> tuple[Path, dict[str, Any], str
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
         description="Harness de mecanica-social-ia (no aprueba uso operativo)."
->>>>>>> origin/main
     )
     parser.add_argument(
         "--component",
@@ -880,10 +755,6 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument(
         "--mode",
         default="offline",
-<<<<<<< HEAD
-        choices=["offline"],
-        help="Solo offline está implementado en este MVP",
-=======
         choices=["offline", "model"],
         help="offline = estructural; model = llama al proveedor (secretos por env)",
     )
@@ -902,7 +773,6 @@ def main(argv: list[str] | None = None) -> int:
         type=int,
         default=None,
         help="Limitar número de casos (útil en pruebas)",
->>>>>>> origin/main
     )
     parser.add_argument(
         "--output",
@@ -911,19 +781,11 @@ def main(argv: list[str] | None = None) -> int:
     )
     parser.add_argument(
         "--ejecutado-por",
-<<<<<<< HEAD
-        default="harness-offline",
-=======
         default=None,
->>>>>>> origin/main
         help="Identificador de quien ejecuta la corrida",
     )
     args = parser.parse_args(argv)
 
-<<<<<<< HEAD
-    if args.mode != "offline":
-        print("ERROR: solo modo offline implementado", file=sys.stderr)
-=======
     run_cfg: dict[str, Any] = {}
     if args.config:
         cfg_path = Path(args.config)
@@ -942,7 +804,6 @@ def main(argv: list[str] | None = None) -> int:
 
     if mode not in {"offline", "model"}:
         print(f"ERROR: modo no soportado: {mode}", file=sys.stderr)
->>>>>>> origin/main
         return 2
 
     component_path = Path(args.component).resolve()
@@ -959,13 +820,6 @@ def main(argv: list[str] | None = None) -> int:
         return 2
 
     if not isinstance(component, dict) or not isinstance(suite, dict):
-<<<<<<< HEAD
-        print("ERROR: componente y suite deben ser documentos YAML objeto", file=sys.stderr)
-        return 2
-
-    comp_findings = validate_component(component, component_path)
-    suite_findings, case_results = validate_suite(suite, suite_path)
-=======
         print(
             "ERROR: componente y suite deben ser documentos YAML objeto",
             file=sys.stderr,
@@ -1028,7 +882,6 @@ def main(argv: list[str] | None = None) -> int:
                 return 2
             raise
 
->>>>>>> origin/main
     result = build_result(
         component,
         component_path,
@@ -1037,38 +890,22 @@ def main(argv: list[str] | None = None) -> int:
         comp_findings,
         suite_findings,
         case_results,
-<<<<<<< HEAD
-        args.ejecutado_por,
-=======
         ejecutado_por,
         mode=mode,
         model_ref=model_rel,
         model_stats=model_stats,
->>>>>>> origin/main
     )
 
     output_dir.mkdir(parents=True, exist_ok=True)
     cid = component.get("id") or "componente"
     ver = component.get("version") or "0.0.0"
     day = datetime.now(timezone.utc).strftime("%Y-%m-%d")
-<<<<<<< HEAD
-    out_path = output_dir / f"{day}-{cid}-v{ver}-offline.json"
-=======
     out_path = output_dir / f"{day}-{cid}-v{ver}-{mode}.json"
->>>>>>> origin/main
     with out_path.open("w", encoding="utf-8") as fh:
         json.dump(result, fh, ensure_ascii=False, indent=2)
         fh.write("\n")
 
     resumen = result["resumen"]
-<<<<<<< HEAD
-    print("=== Harness offline (estructural) ===")
-    print(f"Componente: {cid} v{ver} (estado={component.get('estado')})")
-    print(f"Suite:      {suite.get('id')} v{suite.get('version')}")
-    print(f"Casos:      {resumen['n_pasados']}/{resumen['n_casos']} estructurales OK")
-    print(f"Umbrales:   {'OK' if resumen['umbrales_obligatorios_ok'] else 'FALLA'}")
-    print("Apto aprobación operativa: NO (modo offline)")
-=======
     title = "offline (estructural)" if mode == "offline" else "model"
     print(f"=== Harness {title} ===")
     print(f"Componente: {cid} v{ver} (estado={component.get('estado')})")
@@ -1078,7 +915,6 @@ def main(argv: list[str] | None = None) -> int:
     print(f"Casos:      {resumen['n_pasados']}/{resumen['n_casos']} OK")
     print(f"Umbrales:   {'OK' if resumen['umbrales_obligatorios_ok'] else 'FALLA'}")
     print("Apto aprobación operativa: NO")
->>>>>>> origin/main
     print(f"Resultado:  {out_path}")
 
     if not resumen["umbrales_obligatorios_ok"]:

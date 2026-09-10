@@ -1,17 +1,9 @@
 # Mecánica Social IA - CODEOWNERS
-<<<<<<< HEAD
-# Define responsables por área del repositorio
-#
-# PEND-003 (intencional): four-eyes real con más personas queda pendiente.
-# Hoy hay un único maintainer; no se inventan Teams ni handles adicionales.
-# Ver docs/arquitectura/pendientes-intencionales.md
-=======
 # Define responsables por path. Los *roles* de revisión (técnica, ética, datos…)
 # se documentan en docs/arquitectura/roles-revision.md y no se confunden con
 # code ownership: un code owner no sustituye four-eyes en riesgo alto.
 #
 # Etapa temprana: un solo handle. Objetivo futuro: teams por rol.
->>>>>>> origin/main
 
 # GOBERNANZA Y POLÍTICAS
 CONTRIBUTING.md          @LeodanZapata

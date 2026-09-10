@@ -7,30 +7,18 @@ Marco de evaluación de `mecanica-social-ia`: diseño, suites sintéticas, harne
 Un componente **no** se aprueba solo porque una respuesta parezca plausible.
 El harness **mide**; la gobernanza **decide**.
 
-<<<<<<< HEAD
-## Inventario actual (P1 — MVP ejecutable offline)
-=======
 ## Inventario actual (práctico)
->>>>>>> origin/main
 
 | Elemento | Estado |
 |---|---|
 | `harness.md`, `metricas.md`, `resultados.md`, `casos-prueba.md` | Documentados |
-<<<<<<< HEAD
-| `harness.py` | **MVP offline implementado** |
-| `casos-prueba/intake-test-set.yaml` | Suite sintética v0.1.0 (6 casos) |
-| `resultados/` | Corridas offline reales |
-| `_plantilla-resultado.json` | Plantilla (no es evidencia) |
-| CI smoke offline | `.github/workflows/eval-offline.yml` |
-| Modo `model` / `replay` | Pendiente (PEND-004 para job model) |
-=======
 | `harness.py` | Offline + **model** (secretos por env) |
 | `config.example.yaml` | Ejemplo no sensible |
 | `casos-prueba/intake-test-set.yaml` | Suite sintética v0.1.0 |
 | `resultados/` | Corridas archivadas |
 | `_plantilla-resultado.json` | Plantilla (no es evidencia) |
+| CI smoke offline | `.github/workflows/eval-offline.yml` |
 | Modo `replay` | Pendiente |
->>>>>>> origin/main
 | Suites de sesgo / 100+ casos | No existen aún |
 
 ## Cómo ejecutar (offline)
@@ -46,8 +34,6 @@ python evaluations/harness.py \
 
 El modo offline valida estructura del componente y de la suite.
 Siempre deja `apto_para_aprobacion_operativa: false`.
-<<<<<<< HEAD
-=======
 
 ## Cómo ejecutar (model)
 
@@ -68,7 +54,6 @@ python evaluations/harness.py \
 Métricas adicionales sobre salidas del modelo: `json_valido`,
 `campos_requeridos_presentes`, `exactitud_extraccion`, `no_invencion`.
 Tampoco aprueba uso operativo.
->>>>>>> origin/main
 
 ## Estructura
 
@@ -77,10 +62,7 @@ evaluations/
 ├── README.md
 ├── harness.md
 ├── harness.py
-<<<<<<< HEAD
-=======
 ├── config.example.yaml
->>>>>>> origin/main
 ├── metricas.md
 ├── resultados.md
 ├── casos-prueba.md
@@ -88,8 +70,7 @@ evaluations/
 ├── casos-prueba/
 │   └── intake-test-set.yaml
 └── resultados/
-<<<<<<< HEAD
-    └── YYYY-MM-DD-<id>-v<ver>-offline.json
+    └── YYYY-MM-DD-<id>-v<ver>-{offline|model}.json
 ```
 
 ## Documentos de diseño
@@ -107,7 +88,7 @@ evaluations/
 ```text
 Componente + suite sintética
         ↓
-Harness offline (estructural)
+Harness (offline o model)
         ↓
 Resultado en evaluations/resultados/
         ↓
@@ -122,16 +103,9 @@ Estado del componente (prueba, aprobado, …)
 |---|---|
 | `prompts/` | Metadatos y ejemplos; no archiva evidencia formal |
 | `experiments/` | Exploración; no sustituye evaluación formal |
+| `models/` | Slot de evaluación y model-cards |
 | `PRACTICO.md` | Guía rápida del MVP |
 | `DATA_GOVERNANCE.md` / `GOVERNANCE.md` | Datos y decisión institucional |
-
-## Referencias
-
-- `docs/arquitectura/ADR/ADR-001-arquitectura-inicial-y-mvp-evaluacion.md`
-- `PRACTICO.md`
-=======
-    └── YYYY-MM-DD-<id>-v<ver>-{offline|model}.json
-```
 
 ## Referencias
 
@@ -139,7 +113,7 @@ Estado del componente (prueba, aprobado, …)
 - `docs/arquitectura/ADR/ADR-002-modo-model-secretos-y-proveedor.md`
 - `models/openai-compatible-eval/model-card.md`
 - `infra/secretos-y-entorno.md`
->>>>>>> origin/main
+- `PRACTICO.md`
 - `GOVERNANCE.md`
 - `DATA_GOVERNANCE.md`
 - `SECURITY.md`

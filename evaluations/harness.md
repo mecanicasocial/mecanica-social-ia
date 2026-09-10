@@ -37,11 +37,7 @@ La implementación en código es opcional hasta que exista un entorno autorizado
 | `prompts/*.yaml` | Metadatos, ejemplos y criterios del prompt |
 | `experiments/` | Exploración; no sustituye evaluación formal |
 
-<<<<<<< HEAD
-**Nota (P0):** se eliminó el borrador mal ubicado `prompts/.evaluations/test-casos-intake.yaml` (Python con extensión `.yaml` que podía sugerir “aprobado para producción” sin medir el modelo). El harness canónico y los casos de prueba viven **solo** bajo `evaluations/`, nunca bajo `prompts/`.
-=======
 **Nota:** un borrador erróneo bajo `prompts/.evaluations/` fue retirado. El harness canónico y los casos de prueba viven solo bajo `evaluations/`.
->>>>>>> origin/main
 
 ## 4. Alcance funcional
 
@@ -227,12 +223,6 @@ Se considerará usable como herramienta de apoyo cuando:
 | Elemento | Estado |
 |---|---|
 | Diseño / contrato (`harness.md`) | Documentado |
-<<<<<<< HEAD
-| Implementación `harness.py` | **MVP offline implementado** (P1); modos `model`/`replay` pendientes |
-| Suites de casos | `casos-prueba/intake-test-set.yaml` (sintético v0.1.0) |
-| CI smoke-test (offline, sin secretos) | `.github/workflows/eval-offline.yml` |
-| CI job **model** (inferencia con proveedor) | Pendiente **intencional** (PEND-004): solo con secrets de **organización** en el repo canónico; **no** en forks. Ver `docs/arquitectura/pendientes-intencionales.md` |
-=======
 | Implementación `harness.py` | Offline + **model** (ADR-002) |
 | Secretos | Solo entorno (`infra/secretos-y-entorno.md`) |
 | Config ejemplo | `evaluations/config.example.yaml` |
@@ -260,7 +250,6 @@ python evaluations/harness.py \
 - Métricas adicionales: `exactitud_extraccion`, `no_invencion` sobre **salidas del modelo**.
 - `apto_para_aprobacion_operativa` permanece `false`.
 - Sin variables de entorno requeridas → error controlado (no se inventa éxito).
->>>>>>> origin/main
 
 ## 11. Referencias
 

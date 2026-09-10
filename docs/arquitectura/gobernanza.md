@@ -13,9 +13,6 @@ Responde estas 3 preguntas:
 
 ### **1. Sistema de Prompts Versionado**
 
-<<<<<<< HEAD
-prompts/ ├── README.md [Guía y convenciones] └── formulario-intake-v1.0.0.yaml [Ejemplo en prueba; no operativo; riesgo medio]
-=======
 ```text
 prompts/
 ├── README.md
@@ -25,7 +22,6 @@ prompts/
 
 `resumidor-solicitudes` y carpetas `.evaluaciones` bajo prompts **no existen**.
 Las suites viven en `evaluations/casos-prueba/`.
->>>>>>> origin/main
 
 
 **Responsabilidad**: @LeodanZapata (técnica, metodológica, ética)
@@ -175,13 +171,6 @@ Cambios en archivos críticos → Siempre (LICENSE, GOVERNANCE, etc.) Nuevo prom
 ## Próximos Pasos
 
 1. ✅ **Licencia definida** (LICENSE.md)
-<<<<<<< HEAD
-2. ✅ **Responsables asignados** (@LeodanZapata) — segundo maintainer / Teams pendiente a propósito (PEND-003)
-3. ✅ **Primer prompt ejemplo** (`prompts/formulario-intake-v1.0.0.yaml`; estado `prueba`, alcance no operativo; P0)
-4. ✅ **P1 — MVP evaluación ejecutable** (`evaluations/harness.py` offline, suite intake, CI smoke; ver `PRACTICO.md` y ADR-001)
-5. ⏳ **Integraciones** INT-001 / INT-002: inventario en `integraciones.md`; confirmación y vendor **bloqueados a propósito** (ver `pendientes-intencionales.md`)
-6. ⏳ **CI job model** (PEND-004; secrets de org, no forks) — smoke offline ya existe
-=======
 2. ✅ **Responsables asignados** (@LeodanZapata)
 3. ✅ **Primer prompt ejemplo en prueba** (formulario-intake-v1.0.0.yaml; riesgo medio)
 4. ✅ **Harness offline MVP** (evaluations/harness.py + suite intake)
@@ -191,7 +180,6 @@ Cambios en archivos críticos → Siempre (LICENSE, GOVERNANCE, etc.) Nuevo prom
 8. ⏳ **Autorizar proveedor productivo** (INT-002 + registro de decisión)
 9. ⏳ **Validar INT-001** con responsables de mecanica-social-escuela
 10. ⏳ **Segundo maintainer / teams** para four-eyes en CODEOWNERS
->>>>>>> origin/main
 
 ---
 

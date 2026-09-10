@@ -1,11 +1,7 @@
 id: formulario-intake
 version: 1.0.0
 estado: prueba
-<<<<<<< HEAD
-autor: nombre
-=======
 autor: "@LeodanZapata"
->>>>>>> origin/main
 fecha_creacion: 2026-09-06
 fecha_revision: 2026-09-10
 
@@ -14,18 +10,10 @@ proposito: |
   y extraer información estructurada de beneficiarios (casos sintéticos
   de prueba; no uso operativo hasta evaluación con modelo y aprobación).
 
-# Ejemplo de metadatos y formato. NO es un componente operativo ni
-# autorizado para uso institucional. Suite canónica offline:
-# evaluations/casos-prueba/intake-test-set.yaml (no basta para promoción).
 alcance: ejemplo-no-operativo
 
 area_responsable: "Formación Institucional"
 personas_afectadas: ["Beneficiarios", "Coordinadores de programas"]
-<<<<<<< HEAD
-# PII de beneficiarios (nombre, email, teléfono) → riesgo medio mínimo
-# según DATA_GOVERNANCE.md y gobernanza-rapida.md.
-=======
->>>>>>> origin/main
 nivel_riesgo: medio
 
 datos_permitidos:
@@ -48,13 +36,8 @@ fuentes_autorizadas:
 limitaciones_conocidas:
   - No valida direcciones fuera de Chile
   - Sensible a caracteres especiales
-<<<<<<< HEAD
-  - Evidencia formal solo offline (estructural); no mide el modelo
-  - Un solo ejemplo embebido; la suite canónica vive en evaluations/casos-prueba/
-=======
   - Estado "prueba": sin evidencia de desempeño de modelo archivada
   - El modo offline del harness solo valida estructura, no extracción real
->>>>>>> origin/main
 
 prompt_text: |
   Eres un asistente que procesa solicitudes de capacitación.
@@ -69,11 +52,7 @@ prompt_text: |
   - Edites el formato de email/teléfono
   - Hables de dinero o costos
 
-<<<<<<< HEAD
-  Input: {% verbatim %}{{ texto_formulario }}{% endverbatim %}
-=======
   Input: {{ texto_formulario }}
->>>>>>> origin/main
   Output format:
   {
     "nombre": "...",
@@ -99,65 +78,27 @@ evaluacion:
   suite_canonica: evaluations/casos-prueba/intake-test-set.yaml
   metricas:
     - tipo: exactitud_extraccion
-<<<<<<< HEAD
-      objetivo: ≥95%
-      metodo: Comparar con ground truth manual (requiere modo model)
-    - tipo: coherencia_estructura
-      objetivo: 100%
-      metodo: JSON válido en todas las respuestas
-
-=======
       objetivo: ">=95%"
       metodo: Comparar con ground truth (requiere modo model)
     - tipo: coherencia_estructura
       objetivo: "100%"
       metodo: JSON válido y campos requeridos en todas las respuestas
->>>>>>> origin/main
+  evidencia_formal: offline-estructural  # no basta para promoción operativa
   criterios_aceptacion:
     - "Todos los campos requeridos presentes"
     - "No hay respuestas vacías cuando info disponible"
     - "Formato JSON correcto"
-<<<<<<< HEAD
-  # Evidencia formal solo bajo evaluations/. Offline = estructural, no promoción.
-  evidencia_formal: offline-estructural
-
-supervision_humana:
-  requerida: sí
-  forma: "Revisor manual valida al menos 30% de respuestas y 100% de casos con PII incompleta o ambigua"
-  frecuencia: "Diaria en piloto; semanal en régimen, o si error > 3%"
-=======
     - "No inventar datos ausentes en el input"
 
 supervision_humana:
   requerida: si
   forma: "Revisor manual valida muestra de respuestas antes de cualquier uso operativo"
   frecuencia: "En cada promoción de versión y semanal si hay piloto"
->>>>>>> origin/main
   responsable: "Coordinador de Formación"
 
 revisiones:
   - fecha: 2026-09-06
     version: 1.0.0
-<<<<<<< HEAD
-    cambio: "Versión inicial de ejemplo (metadatos y formato)"
-    revisado_por: "Equipo Técnico"
-    aprobado_por: "N/A — sin aprobación operativa"
-  - fecha: 2026-09-10
-    version: 1.0.0
-    cambio: |
-      P0 auditoría: estado aprobado→prueba; riesgo bajo→medio;
-      alcance ejemplo-no-operativo; supervisión alineada a PII;
-      evidencia formal pendiente en evaluations/.
-    revisado_por: "Auditoría arquitectura"
-    aprobado_por: "N/A — sin aprobación operativa"
-  - fecha: 2026-09-10
-    version: 1.0.0
-    cambio: |
-      P1 MVP: enlaza suite_canonica intake-test-set.yaml;
-      evidencia_formal offline-estructural (no operativa).
-    revisado_por: "MVP evaluación ejecutable"
-    aprobado_por: "N/A — sin aprobación operativa"
-=======
     cambio: "Versión inicial documentada"
     revisado_por: "Equipo Técnico"
     aprobado_por: null
@@ -168,4 +109,3 @@ revisiones:
       metadatos y supervisión alineados a gobernanza; sin aprobación operativa.
     revisado_por: "Auditoría práctica MVP"
     aprobado_por: null
->>>>>>> origin/main

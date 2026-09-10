@@ -31,7 +31,7 @@ resultados / servicios
 
 La implementación concreta deberá definir interfaz, entradas, salidas, autenticación, autorización, errores, versionamiento, datos y responsabilidades.
 
-Esa definición requiere **confirmación bilateral** con Escuela (PEND-002). Mientras tanto INT-001 permanece en **Propuesto** sin inventar contrato; ver `pendientes-intencionales.md`.
+Existe un contrato **provisional** en `contratos/INT-001-escuela.md` (schema/muestra sintéticos). La confirmación **bilateral** con Escuela sigue pendiente (PEND-002); no inventar API productiva ni elevar el estado a Validada/Operativa sin esa confirmación. Ver `pendientes-intencionales.md`.
 
 No debe asumirse que ambos repositorios deben compartir código directamente.
 
@@ -121,7 +121,7 @@ Schema/muestra sintéticos INT-001:
 
 ### Notas de bloqueo intencional
 
-- **INT-001** permanece en **Propuesto** hasta **confirmación bilateral** con Escuela (contrato, datos y responsabilidades). No inventar API ni campos. Ver `pendientes-intencionales.md` (PEND-002).
+- **INT-001** está en estado **Provisional** (contrato y schema sintéticos documentados) hasta **confirmación bilateral** con Escuela. No inventar API productiva ni campos no acordados. Ver `pendientes-intencionales.md` (PEND-002).
 - **INT-002** permanece en **Propuesto** hasta **autorización institucional** de vendor productivo, evaluación y validación de la integración. Ver `pendientes-intencionales.md` (PEND-001).
 
 ## 10. Cambios
