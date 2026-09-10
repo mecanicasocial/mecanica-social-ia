@@ -225,7 +225,8 @@ Se considerará usable como herramienta de apoyo cuando:
 | Diseño / contrato (`harness.md`) | Documentado |
 | Implementación `harness.py` | Pendiente / no requerida para cerrar el diseño |
 | Suites de casos | Estructura prevista; contenido inicial mínimo opcional |
-| CI smoke-test | Pendiente |
+| CI smoke-test (offline, sin secretos) | Pendiente de diseño/implementación |
+| CI job **model** (inferencia con proveedor) | Pendiente **intencional** (PEND-004): solo con secrets de **organización** en el repo canónico; **no** en forks. Ver `docs/arquitectura/pendientes-intencionales.md` |
 
 ## 11. Referencias
 

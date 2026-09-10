@@ -31,6 +31,8 @@ resultados / servicios
 
 La implementación concreta deberá definir interfaz, entradas, salidas, autenticación, autorización, errores, versionamiento, datos y responsabilidades.
 
+Esa definición requiere **confirmación bilateral** con Escuela (PEND-002). Mientras tanto INT-001 permanece en **Propuesto** sin inventar contrato; ver `pendientes-intencionales.md`.
+
 No debe asumirse que ambos repositorios deben compartir código directamente.
 
 ## 4. Proveedores de modelos
@@ -49,6 +51,8 @@ Toda integración con un proveedor externo debería documentar:
 - evaluación correspondiente.
 
 Las credenciales se mantienen fuera del repositorio.
+
+La adopción de un **vendor productivo** y la validación de **INT-002** requieren autorización institucional (PEND-001). No hay proveedor productivo versionado en `models/` hasta ese desbloqueo; ver `pendientes-intencionales.md`.
 
 ## 5. Contrato de integración
 
@@ -102,6 +106,11 @@ Los registros no deben exponer secretos ni datos personales innecesarios.
 | INT-002 | Mecánica Social IA | Proveedor de modelo | Inferencia IA | Por definir | Propuesto |
 
 Estas filas son referencias iniciales y no presuponen integraciones implementadas.
+
+### Notas de bloqueo intencional
+
+- **INT-001** permanece en **Propuesto** hasta **confirmación bilateral** con Escuela (contrato, datos y responsabilidades). No inventar API ni campos. Ver `pendientes-intencionales.md` (PEND-002).
+- **INT-002** permanece en **Propuesto** hasta **autorización institucional** de vendor productivo, evaluación y validación de la integración. Ver `pendientes-intencionales.md` (PEND-001).
 
 ## 10. Cambios
 
