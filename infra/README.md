@@ -11,14 +11,17 @@ de desarrollo, prueba y producción.
 
 ## Contenido
 
-Podrá incluir:
+| Artefacto | Rol |
+|---|---|
+| `README.md` | Este índice |
+| `secretos-y-entorno.md` | Convención de variables de entorno y secretos (ADR-002) |
+
+Podrá incluir además:
 
 - Configuración de despliegue.
 - Scripts de infraestructura.
-- Configuración de servicios.
-- Automatizaciones.
 - Contenedores.
-- Configuración de entornos.
+- Automatizaciones de entorno.
 
 ## Entornos
 
@@ -39,7 +42,9 @@ Nunca almacenar directamente:
 - Secretos.
 
 Los secretos deberán administrarse mediante mecanismos seguros
-de gestión de configuración.
+de gestión de configuración. Detalle operativo:
+
+→ [`secretos-y-entorno.md`](secretos-y-entorno.md)
 
 ## Principio
 

@@ -35,17 +35,18 @@ Las suites viven en `evaluations/casos-prueba/`.
 
 ### **2. Sistema de Modelos y Configuraciones**
 
-Estado actual: solo `models/README.md`. Aún no hay `config.yaml` ni model-cards versionadas.
-
-Objetivo (cuando exista proveedor autorizado):
+Estado actual:
 
 ```text
 models/
 ├── README.md
-└── <proveedor-modelo>/
+├── _plantillas/
+└── openai-compatible-eval/   # propuesto / solo evaluación (ADR-002)
     ├── config.yaml
     └── model-card.md
 ```
+
+Proveedor **productivo** autorizado: aún no. Ver model-card y roles de revisión.
 
 
 **Responsabilidad**: @LeodanZapata (elige modelos, valida licencias)
@@ -62,21 +63,22 @@ models/
 
 ### **3. Sistema de Evaluaciones**
 
-Estado actual (MVP):
+Estado actual:
 
 ```text
 evaluations/
-├── harness.py                 # offline implementado
+├── harness.py                 # offline + model (secretos por env)
+├── config.example.yaml
 ├── casos-prueba/intake-test-set.yaml
-└── resultados/*-offline.json
+└── resultados/*-{offline|model}.json
 ```
 
 Aún no hay suites de 100+ casos ni métricas tipo BLEU como primarias.
 
 
-**Responsabilidad**: @LeodanZapata (define métricas, valida pruebas)
+**Responsabilidad**: @LeodanZapata (define métricas, valida pruebas) — ver roles-revision.md
 
-**Ejecución**: `python harness.py prompts/formulario-intake-v1.0.0.yaml`
+**Ejecución**: ver `PRACTICO.md` / `evaluations/README.md`
 
 ---
 
@@ -118,11 +120,13 @@ Raíz del repo/ ├── GOVERNANCE.md [Proceso de aprobación formal] ├─�
 mecanica-social-escuela mecanica-social-ia (Plataforma educativa) (Sistema de IA) │ │ │ │ Programas ◄──────────────────────► Prompts Contenido ◄──────────────────────► Modelos Evaluación ◄────────────────────► Agentes │ │ └─────────────────────────────────────┘ (API Contract)
 
 
-**Flujo de datos de mecanica-social-escuela → mecanica-social-ia**:
-1. API en escuela expone: listado de programas, materiales, evaluaciones
-2. IA ingesta esta información (batch o en tiempo real)
-3. Genera: resúmenes, recomendaciones, análisis, automatizaciones
-4. Retorna: resultados versionados y trazables a escuela
+**Flujo de datos de mecanica-social-escuela → mecanica-social-ia**
+(**objetivo no implementado**; contrato provisional INT-001):
+
+1. Escuela aporta necesidad / textos de solicitud según contrato acordado
+2. IA asiste (p. ej. extracción estructurada) solo con datos autorizados o sintéticos
+3. Resultado versionado + **revisión humana** antes de uso en Escuela
+4. No existe API productiva documentada aún — ver `contratos/INT-001-escuela.md`
 
 **Restricciones críticas**:
 - Nunca acceder a datos personales de estudiantes sin autorización
@@ -170,9 +174,12 @@ Cambios en archivos críticos → Siempre (LICENSE, GOVERNANCE, etc.) Nuevo prom
 2. ✅ **Responsables asignados** (@LeodanZapata)
 3. ✅ **Primer prompt ejemplo en prueba** (formulario-intake-v1.0.0.yaml; riesgo medio)
 4. ✅ **Harness offline MVP** (evaluations/harness.py + suite intake)
-5. ⏳ **Modo model del harness** (con proveedor autorizado y secretos fuera de Git)
-6. ⏳ **Documentar contrato real de integración** con mecanica-social-escuela
-7. ⏳ **Model cards** y separación de roles de revisión
+5. ✅ **Modo model del harness** (secretos por env; ADR-002) — vendor productivo aún no autorizado
+6. ✅ **Contrato provisional INT-001** (`docs/arquitectura/contratos/INT-001-escuela.md`) — falta confirmación Escuela
+7. ✅ **Model-card de evaluación** + **roles de revisión** documentados
+8. ⏳ **Autorizar proveedor productivo** (INT-002 + registro de decisión)
+9. ⏳ **Validar INT-001** con responsables de mecanica-social-escuela
+10. ⏳ **Segundo maintainer / teams** para four-eyes en CODEOWNERS
 
 ---
 

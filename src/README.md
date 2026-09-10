@@ -8,17 +8,15 @@ Esta carpeta contiene el código fuente compartido de
 Centralizar las implementaciones de software necesarias para ejecutar,
 integrar y evaluar los componentes del proyecto.
 
-## Contenido
+## Inventario real
 
-Podrá incluir:
-
-- Librerías internas.
-- Clientes de servicios de IA.
-- Utilidades.
-- Procesadores.
-- Integraciones.
-- Lógica común.
-- Interfaces internas.
+```text
+src/
+├── README.md
+└── ms_ia/
+    ├── __init__.py
+    └── model_client.py   # cliente OpenAI-compatible (secretos por env)
+```
 
 ## Principios
 
@@ -44,24 +42,10 @@ El código puede interactuar con:
 
 ## Calidad
 
-Los cambios relevantes deberán pasar por:
+Los cambios relevantes deberán pasar por Issue → Branch → PR → Review → Merge,
+con roles según `docs/arquitectura/roles-revision.md`.
 
-```text
-Issue
-↓
-Branch
-↓
-Commit
-↓
-Pull Request
-↓
-Review
-↓
-Merge
-
-Principio
+## Principio
 
 El código fuente debe ser mantenible, reutilizable, trazable y
 suficientemente documentado para permitir su evolución.
-
----

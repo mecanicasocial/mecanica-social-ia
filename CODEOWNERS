@@ -1,8 +1,11 @@
 # Mecánica Social IA - CODEOWNERS
-# Define responsables por área del repositorio
+# Define responsables por path. Los *roles* de revisión (técnica, ética, datos…)
+# se documentan en docs/arquitectura/roles-revision.md y no se confunden con
+# code ownership: un code owner no sustituye four-eyes en riesgo alto.
+#
+# Etapa temprana: un solo handle. Objetivo futuro: teams por rol.
 
 # GOBERNANZA Y POLÍTICAS
-# Cualquier cambio en estos archivos requiere aprobación de @LeodanZapata
 CONTRIBUTING.md          @LeodanZapata
 CODE_OF_CONDUCT.md       @LeodanZapata
 GOVERNANCE.md            @LeodanZapata
@@ -11,29 +14,30 @@ DATA_GOVERNANCE.md       @LeodanZapata
 SECURITY.md              @LeodanZapata
 LICENSE.md               @LeodanZapata
 NOTICE                   @LeodanZapata
+/docs/gobernanza/        @LeodanZapata
 
 # ARQUITECTURA Y DOCUMENTACIÓN
-# Cambios en la estructura deben ser revisados
 /docs/arquitectura/      @LeodanZapata
 README.md                @LeodanZapata
+PRACTICO.md              @LeodanZapata
 
-# PROMPTS (Requiere revisión técnica + metodológica + ética)
-# Versiones v1.0.0+ requieren revisión completa de @LeodanZapata
+# PROMPTS (revisión técnica + metodológica + ética según riesgo)
 /prompts/                @LeodanZapata
 
-# MODELOS
-# Cualquier nueva dependencia o modelo debe aprobarse
+# MODELOS (revisión técnica + datos/seguridad para autorizar)
 /models/                 @LeodanZapata
 
 # AGENTES
-# Cambios en lógica de agentes requieren revisión técnica
 /agents/                 @LeodanZapata
 
 # EVALUACIONES Y EXPERIMENTOS
-# Cambios en criterios de evaluación requieren aprobación
 /evaluations/            @LeodanZapata
 /experiments/            @LeodanZapata
 
+# CÓDIGO E INFRA (seguridad / secretos)
+/src/                    @LeodanZapata
+/infra/                  @LeodanZapata
+/data/                   @LeodanZapata
+
 # CI/CD Y SEGURIDAD
-# Workflows y acceso requieren revisión cuidadosa
 /.github/                @LeodanZapata
