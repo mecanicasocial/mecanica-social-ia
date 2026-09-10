@@ -79,11 +79,20 @@ Las métricas deben ser apropiadas al objetivo; pueden incluir exactitud, precis
 ```text
 evaluations/
 ├── README.md
+├── harness.md              # contrato de evaluations/harness.py
+├── metricas.md
+├── resultados.md
+├── casos-prueba.md
+├── _plantilla-resultado.json
+├── harness.py              # implementación de referencia (cuando exista)
+├── casos-prueba/
+├── resultados/
 ├── prompts/
 ├── models/
-├── agents/
-└── results/
+└── agents/
 ```
+
+Documentación normativa del marco: `evaluations/README.md`, `evaluations/harness.md`, `evaluations/metricas.md`, `evaluations/resultados.md`.
 
 ## 8. `infra/`
 

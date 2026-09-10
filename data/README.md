@@ -1,4 +1,3 @@
-Este es especialmente importante.
 # Data
 
 Esta carpeta contiene esquemas, muestras y definiciones relacionadas
