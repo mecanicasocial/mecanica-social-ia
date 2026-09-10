@@ -13,7 +13,15 @@ Responde estas 3 preguntas:
 
 ### **1. Sistema de Prompts Versionado**
 
-prompts/ ├── README.md [Guía y convenciones] ├── formulario-intake-v1.0.0.yaml [Prompt aprobado] ├── resumidor-solicitudes-v0.1.0.yaml [Prompt en evaluación] └── .evaluaciones/ └── casos-prueba.yaml [Test cases reutilizables]
+```text
+prompts/
+├── README.md
+├── esquema-prompt.yaml
+└── formulario-intake-v1.0.0.yaml   # estado: prueba (riesgo medio)
+```
+
+`resumidor-solicitudes` y carpetas `.evaluaciones` bajo prompts **no existen**.
+Las suites viven en `evaluations/casos-prueba/`.
 
 
 **Responsabilidad**: @LeodanZapata (técnica, metodológica, ética)
@@ -27,7 +35,17 @@ prompts/ ├── README.md [Guía y convenciones] ├── formulario-intake-
 
 ### **2. Sistema de Modelos y Configuraciones**
 
-models/ ├── README.md [Modelos disponibles] ├── openai-gpt4/ │ ├── config.yaml [Parámetros, costo, límites] │ └── model-card.md [Capacidades, limitaciones, riesgos] └── anthropic-claude/ ├── config.yaml └── model-card.md
+Estado actual: solo `models/README.md`. Aún no hay `config.yaml` ni model-cards versionadas.
+
+Objetivo (cuando exista proveedor autorizado):
+
+```text
+models/
+├── README.md
+└── <proveedor-modelo>/
+    ├── config.yaml
+    └── model-card.md
+```
 
 
 **Responsabilidad**: @LeodanZapata (elige modelos, valida licencias)
@@ -44,7 +62,16 @@ models/ ├── README.md [Modelos disponibles] ├── openai-gpt4/ │ ├
 
 ### **3. Sistema de Evaluaciones**
 
-evaluations/ ├── harness.py [Script principal] ├── metricas.py [Cálculo de BLEU, ROUGE, etc.] ├── casos-prueba/ │ ├── intake-test-set.yaml [100+ casos validados] │ └── sesgo-detection-suite.yaml [Pruebas de equidad] └── resultados/ └── 2024-09-06-formulario-intake.json [Resultado de evaluación]
+Estado actual (MVP):
+
+```text
+evaluations/
+├── harness.py                 # offline implementado
+├── casos-prueba/intake-test-set.yaml
+└── resultados/*-offline.json
+```
+
+Aún no hay suites de 100+ casos ni métricas tipo BLEU como primarias.
 
 
 **Responsabilidad**: @LeodanZapata (define métricas, valida pruebas)
@@ -55,7 +82,8 @@ evaluations/ ├── harness.py [Script principal] ├── metricas.py [Cál
 
 ### **4. Sistema de Agentes Automatizados**
 
-gents/ ├── README.md [Manifiesto de agentes] ├── asistente-formacion/ │ ├── agent.yaml [Definición del agente] │ ├── prompts.yaml [Lista de prompts utilizados] │ └── integraciones.yaml [APIs externas] └── orquestador-proyectos/ ├── agent.yaml └── prompts.yaml
+Estado actual: solo `agents/README.md`. No hay agentes implementados.
+Los nombres `asistente-formacion` / `orquestador-proyectos` son **ejemplos futuros**, no inventario real.
 
 
 **Responsabilidad**: @LeodanZapata (verifica seguridad y permisos)
@@ -140,9 +168,11 @@ Cambios en archivos críticos → Siempre (LICENSE, GOVERNANCE, etc.) Nuevo prom
 
 1. ✅ **Licencia definida** (LICENSE.md)
 2. ✅ **Responsables asignados** (@LeodanZapata)
-3. ⏳ **Crear primer prompt ejemplo** (formulario-intake-v1.0.0.yaml)
-4. ⏳ **Crear harness de evaluación operativo** (evaluations/harness.py)
-5. ⏳ **Documentar integraciones** con mecanica-social-escuela
+3. ✅ **Primer prompt ejemplo en prueba** (formulario-intake-v1.0.0.yaml; riesgo medio)
+4. ✅ **Harness offline MVP** (evaluations/harness.py + suite intake)
+5. ⏳ **Modo model del harness** (con proveedor autorizado y secretos fuera de Git)
+6. ⏳ **Documentar contrato real de integración** con mecanica-social-escuela
+7. ⏳ **Model cards** y separación de roles de revisión
 
 ---
 

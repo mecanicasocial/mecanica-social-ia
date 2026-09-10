@@ -1,75 +1,49 @@
 # Prompts
 
-Esta carpeta contiene los prompts versionados utilizados por
-`mecanica-social-ia`.
+Prompts versionados de `mecanica-social-ia`.
 
-prompts/
-├── README.md                          ← Guía de uso
-├── esquema-prompt.yaml                ← Template comentado
-├── formulario-intake-v1.0.0.yaml      ← Ejemplo real, aprobado
-├── resumidor-solicitudes-v0.1.0.yaml  ← Ejemplo en desarrollo
-└── .evaluations/
-    └── test-casos-intake.yaml         ← Casos de prueba
+## Inventario actual
 
-## Propósito
+| Archivo | Estado | Notas |
+|---|---|---|
+| `esquema-prompt.yaml` | plantilla | Metadatos mínimos |
+| `formulario-intake-v1.0.0.yaml` | **prueba** | Riesgo medio; sin aprobación operativa |
 
-Mantener los prompts como artefactos versionables, trazables,
-revisables y evaluables.
+No existe aún `resumidor-solicitudes`. No hay scripts de evaluación bajo `prompts/`.
 
-## Contenido
+## Convención de nombre
 
-Aquí se almacenarán:
+```text
+<id>-v<MAJOR.MINOR.PATCH>.yaml
+```
 
-- Prompts en desarrollo.
-- Prompts en evaluación.
-- Prompts aprobados.
-- Versiones históricas de prompts.
-- Esquemas y convenciones para su definición.
+## Estados preferidos (español)
 
-## Versionado
+- `borrador`
+- `prueba`
+- `aprobado`
+- `restringido`
+- `obsoleto`
+- `suspendido`
+- `retirado`
 
-Los prompts utilizarán versionado semántico:
-
-`MAJOR.MINOR.PATCH`
-
-Ejemplo:
-
-`formulario-intake-v1.0.0.yaml`
-
-## Estados
-
-Los prompts podrán utilizar los siguientes estados:
-
-- `draft`
-- `testing`
-- `approved`
-- `deprecated`
-- `archived`
-
-## Reglas
-
-- Cada prompt debe tener un identificador único.
-- Cada versión debe ser trazable.
-- Los cambios relevantes deben realizarse mediante Issue y Pull Request.
-- Los prompts aprobados deben contar con evaluaciones.
-- No incorporar datos personales, credenciales, tokens o información sensible.
+Un prompt **no** pasa a `aprobado` solo por parecer plausible ni por una corrida offline.
 
 ## Evaluación
 
-Las pruebas de los prompts se gestionarán en:
+Las suites y el harness viven en `evaluations/`:
 
-`evaluations/`
+```bash
+python evaluations/harness.py \
+  --component prompts/formulario-intake-v1.0.0.yaml \
+  --suite evaluations/casos-prueba/intake-test-set.yaml \
+  --mode offline \
+  --output evaluations/resultados
+```
 
-## Relación con otros componentes
+## Reglas
 
-Los prompts pueden ser utilizados por:
-
-- `agents/`
-- `experiments/`
-- `evaluations/`
-- `src/`
-
-## Principio
-
-Un prompt es un componente versionable del sistema y debe tratarse con
-el mismo nivel de trazabilidad que el código.
+- Identificador y versión trazables.
+- Cambios relevantes vía Issue y Pull Request.
+- Sin datos personales reales, credenciales ni secretos.
+- Ver `esquema-prompt.yaml` al crear uno nuevo.

@@ -1,51 +1,56 @@
 id: formulario-intake
 version: 1.0.0
-estado: aprobado
-autor: nombre
+estado: prueba
+autor: "@LeodanZapata"
 fecha_creacion: 2026-09-06
-fecha_revision: 2026-09-06
+fecha_revision: 2026-09-10
 
 proposito: |
   Procesar solicitudes de participación en programas de formación
-  y extraer información estructurada de beneficiarios.
+  y extraer información estructurada de beneficiarios (casos sintéticos
+  de prueba; no uso operativo hasta evaluación con modelo y aprobación).
 
 area_responsable: "Formación Institucional"
 personas_afectadas: ["Beneficiarios", "Coordinadores de programas"]
-nivel_riesgo: bajo
+nivel_riesgo: medio
 
 datos_permitidos:
   - Nombre
   - Email
   - Teléfono
   - Motivación
-  
+
 datos_prohibidos:
   - Datos bancarios
   - Información de vulnerabilidad sensible
   - Datos de familia
+  - Datos de salud
+  - Identificadores oficiales (RUT u otros) salvo autorización expresa
 
 fuentes_autorizadas:
-  - Formulario web institucional
-  - Base de datos interna aprobada
+  - Formulario web institucional (cuando exista autorización)
+  - Casos sintéticos de evaluación en evaluations/casos-prueba/
 
 limitaciones_conocidas:
   - No valida direcciones fuera de Chile
   - Sensible a caracteres especiales
-  
+  - Estado "prueba": sin evidencia de desempeño de modelo archivada
+  - El modo offline del harness solo valida estructura, no extracción real
+
 prompt_text: |
   Eres un asistente que procesa solicitudes de capacitación.
-  
+
   Tu tarea:
   1. Extrae: nombre, email, teléfono, razón de interés
   2. Estructura la salida en JSON
   3. Marca campos faltantes con "NO_PROPORCIONADO"
-  
+
   NUNCA:
   - Inventes información
   - Edites el formato de email/teléfono
   - Hables de dinero o costos
-  
-  Input: {% verbatim %}{{ texto_formulario }}{% endverbatim %}
+
+  Input: {{ texto_formulario }}
   Output format:
   {
     "nombre": "...",
@@ -57,39 +62,47 @@ prompt_text: |
 ejemplos:
   - input: |
       Hola, me llamo Carlos. Quiero participar en el programa de
-      liderazgo. Mi correo es carlos@mail.com y mi teléfono es
-      +56 9 1234 5678.
+      liderazgo. Mi correo es carlos.ejemplo@mail.test y mi teléfono es
+      +56 9 1000 0001.
     expected: |
       {
         "nombre": "Carlos",
-        "email": "carlos@mail.com",
-        "telefono": "+56 9 1234 5678",
+        "email": "carlos.ejemplo@mail.test",
+        "telefono": "+56 9 1000 0001",
         "interes": "Programa de liderazgo"
       }
 
 evaluacion:
+  suite_canonica: evaluations/casos-prueba/intake-test-set.yaml
   metricas:
     - tipo: exactitud_extraccion
-      objetivo: ≥95%
-      metodo: Comparar con ground truth manual
+      objetivo: ">=95%"
+      metodo: Comparar con ground truth (requiere modo model)
     - tipo: coherencia_estructura
-      objetivo: 100%
-      metodo: JSON válido en todas las respuestas
-      
+      objetivo: "100%"
+      metodo: JSON válido y campos requeridos en todas las respuestas
   criterios_aceptacion:
     - "Todos los campos requeridos presentes"
     - "No hay respuestas vacías cuando info disponible"
     - "Formato JSON correcto"
+    - "No inventar datos ausentes en el input"
 
-supervison_humana:
-  requerida: sí
-  forma: "Revisor manual valida 10% de respuestas"
-  frecuencia: "Semanal o si error > 5%"
+supervision_humana:
+  requerida: si
+  forma: "Revisor manual valida muestra de respuestas antes de cualquier uso operativo"
+  frecuencia: "En cada promoción de versión y semanal si hay piloto"
   responsable: "Coordinador de Formación"
 
 revisiones:
   - fecha: 2026-09-06
     version: 1.0.0
-    cambio: "Aprobada versión inicial"
+    cambio: "Versión inicial documentada"
     revisado_por: "Equipo Técnico"
-    aprobado_por: "Responsable Gobernanza"
+    aprobado_por: null
+  - fecha: 2026-09-10
+    version: 1.0.0
+    cambio: |
+      Estado rebajado a prueba; riesgo medio por PII potencial;
+      metadatos y supervisión alineados a gobernanza; sin aprobación operativa.
+    revisado_por: "Auditoría práctica MVP"
+    aprobado_por: null

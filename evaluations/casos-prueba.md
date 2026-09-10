@@ -12,7 +12,7 @@ evaluations/casos-prueba/
 └── sesgo-detection-suite.yaml
 ```
 
-Mientras no existan archivos de suite, este documento es la **norma de diseño**. Las suites se añadirán como YAML sintéticos mediante PR, sin PII real.
+Norma de diseño de suites. Suite inicial disponible: `evaluations/casos-prueba/intake-test-set.yaml` (sintéticos, sin PII real).
 
 ## Campos mínimos de una suite
 
@@ -43,7 +43,7 @@ casos:
 
 ## Relación con el prompt de ejemplo
 
-`prompts/formulario-intake-v1.0.0.yaml` declara métricas y un único ejemplo. Eso **no** sustituye una suite en `evaluations/casos-prueba/`. Hasta existir suite y corrida con alcance declarado, no hay evidencia formal de evaluación en este directorio.
+`prompts/formulario-intake-v1.0.0.yaml` declara métricas y un ejemplo. La evidencia formal empieza con la suite `intake-test-set` y corridas en `evaluations/resultados/`. El modo offline **no** prueba el modelo ni otorga estado `aprobado`.
 
 ## Referencias
 

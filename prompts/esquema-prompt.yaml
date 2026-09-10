@@ -1,0 +1,52 @@
+# Esquema / plantilla de metadatos mínimos para prompts institucionales.
+# No es un prompt ejecutable. Copiar y completar al crear un nuevo prompt.
+#
+# Nombre de archivo: <id>-v<MAJOR.MINOR.PATCH>.yaml
+# Ejemplo: formulario-intake-v1.0.0.yaml
+
+id: ejemplo-componente          # identificador estable (kebab-case)
+version: 0.1.0                 # semver
+estado: borrador               # borrador | prueba | aprobado | restringido | obsoleto | suspendido | retirado
+autor: "@usuario"              # handle o nombre real, no placeholder
+fecha_creacion: YYYY-MM-DD
+fecha_revision: YYYY-MM-DD
+
+proposito: |
+  Descripción clara del caso de uso institucional.
+
+area_responsable: "Área"
+personas_afectadas: []
+nivel_riesgo: bajo             # bajo | medio | alto (ver README.md y DATA_GOVERNANCE.md)
+
+datos_permitidos: []
+datos_prohibidos: []
+fuentes_autorizadas: []
+limitaciones_conocidas: []
+
+prompt_text: |
+  Instrucciones para el modelo.
+  Input: {{ variable_entrada }}
+
+ejemplos:
+  - input: |
+      Texto sintético de ejemplo.
+    expected: |
+      Salida esperada o JSON.
+
+evaluacion:
+  suite_canonica: null         # p. ej. evaluations/casos-prueba/<suite>.yaml
+  metricas: []
+  criterios_aceptacion: []
+
+supervision_humana:
+  requerida: si
+  forma: "Describir cómo se revisa"
+  frecuencia: "Cuándo"
+  responsable: "Rol o persona"
+
+revisiones:
+  - fecha: YYYY-MM-DD
+    version: 0.1.0
+    cambio: "Creación inicial"
+    revisado_por: null
+    aprobado_por: null

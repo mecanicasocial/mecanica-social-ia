@@ -60,3 +60,9 @@ YYYY-MM-DD
 ```
 
 Los ADR registran principalmente **por qué** se tomó una decisión. La documentación arquitectónica explica **cómo** está organizado el sistema.
+
+## Índice
+
+| ADR | Título | Estado |
+|---|---|---|
+| [ADR-001](ADR-001-arquitectura-inicial-y-mvp-evaluacion.md) | Arquitectura inicial y MVP de evaluación offline | Aceptado |

@@ -1,0 +1,42 @@
+name: eval-offline
+
+on:
+  push:
+    paths:
+      - "prompts/**"
+      - "evaluations/**"
+      - "requirements.txt"
+      - ".github/workflows/eval-offline.yml"
+  pull_request:
+    paths:
+      - "prompts/**"
+      - "evaluations/**"
+      - "requirements.txt"
+      - ".github/workflows/eval-offline.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  harness-offline:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Run offline harness (intake)
+        run: |
+          python evaluations/harness.py \
+            --component prompts/formulario-intake-v1.0.0.yaml \
+            --suite evaluations/casos-prueba/intake-test-set.yaml \
+            --mode offline \
+            --output evaluations/resultados \
+            --ejecutado-por "github-actions"
+      - name: Show result summary
+        run: |
+          ls -la evaluations/resultados/
+          python -c "import json,glob; p=sorted(glob.glob('evaluations/resultados/*-offline.json'))[-1]; r=json.load(open(p)); print(p); print(r['resumen'])"
