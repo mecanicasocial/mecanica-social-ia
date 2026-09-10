@@ -13,7 +13,7 @@ Responde estas 3 preguntas:
 
 ### **1. Sistema de Prompts Versionado**
 
-prompts/ ├── README.md [Guía y convenciones] ├── formulario-intake-v1.0.0.yaml [Prompt aprobado] ├── resumidor-solicitudes-v0.1.0.yaml [Prompt en evaluación] └── .evaluaciones/ └── casos-prueba.yaml [Test cases reutilizables]
+prompts/ ├── README.md [Guía y convenciones] └── formulario-intake-v1.0.0.yaml [Ejemplo en prueba; no operativo; riesgo medio]
 
 
 **Responsabilidad**: @LeodanZapata (técnica, metodológica, ética)
@@ -140,7 +140,7 @@ Cambios en archivos críticos → Siempre (LICENSE, GOVERNANCE, etc.) Nuevo prom
 
 1. ✅ **Licencia definida** (LICENSE.md)
 2. ✅ **Responsables asignados** (@LeodanZapata) — segundo maintainer / Teams pendiente a propósito (PEND-003)
-3. ✅ **Primer prompt ejemplo** (`prompts/formulario-intake-v1.0.0.yaml`)
+3. ✅ **Primer prompt ejemplo** (`prompts/formulario-intake-v1.0.0.yaml`; estado `prueba`, alcance no operativo; P0)
 4. ⏳ **Harness de evaluación operativo** (`evaluations/harness.py`; diseño en `harness.md`)
 5. ⏳ **Integraciones** INT-001 / INT-002: inventario en `integraciones.md`; confirmación y vendor **bloqueados a propósito** (ver `pendientes-intencionales.md`)
 6. ⏳ **CI:** smoke offline vs job model (PEND-004; secrets de org, no forks)

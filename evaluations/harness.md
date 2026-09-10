@@ -37,7 +37,7 @@ La implementación en código es opcional hasta que exista un entorno autorizado
 | `prompts/*.yaml` | Metadatos, ejemplos y criterios del prompt |
 | `experiments/` | Exploración; no sustituye evaluación formal |
 
-**Nota:** el archivo `prompts/.evaluations/test-casos-intake.yaml` contiene hoy un borrador de script mal ubicado. El harness canónico y los casos de prueba deben vivir bajo `evaluations/`, no mezclados como YAML inválido en `prompts/`.
+**Nota (P0):** se eliminó el borrador mal ubicado `prompts/.evaluations/test-casos-intake.yaml` (Python con extensión `.yaml` que podía sugerir “aprobado para producción” sin medir el modelo). El harness canónico y los casos de prueba viven **solo** bajo `evaluations/`, nunca bajo `prompts/`.
 
 ## 4. Alcance funcional
 
