@@ -9,17 +9,25 @@ de los modelos de inteligencia artificial utilizados por
 Mantener trazabilidad sobre los modelos utilizados, sus versiones,
 proveedores, capacidades, restricciones y condiciones de uso.
 
-## Contenido
+## Inventario real
 
-Aquí podrán almacenarse:
+| id | Estado | Card | Notas |
+|---|---|---|---|
+| `openai-compatible-eval` | `propuesto` / solo evaluación | [model-card.md](openai-compatible-eval/model-card.md) | Slot para harness modo `model`. **No** autorizado para producción ni PII real. |
+| `_plantillas/` | n/a | plantillas | `config.example.yaml`, `model-card.example.md` |
 
-- Configuraciones de modelos.
-- Referencias a proveedores.
-- Versiones utilizadas.
-- Model cards.
-- Parámetros relevantes.
-- Restricciones y limitaciones conocidas.
-- Información sobre licencias.
+No listar providers fantasma. Un modelo pasa a `autorizado` solo con
+registro de gobernanza + revisiones de datos/seguridad (ver
+`docs/arquitectura/roles-revision.md`).
+
+## Estructura por modelo
+
+```text
+models/<id>/
+  config.yaml      # sin secretos
+  model-card.md
+  README.md        # opcional
+```
 
 ## Importante
 
@@ -27,8 +35,8 @@ Los pesos de modelos no deben almacenarse directamente en este
 repositorio salvo que exista una decisión técnica y de licenciamiento
 que lo justifique.
 
-Las credenciales, API keys, tokens y secretos nunca deben almacenarse
-en esta carpeta.
+Las credenciales, API keys, tokens y secretos **nunca** deben
+almacenarse en esta carpeta. Ver `infra/secretos-y-entorno.md` y ADR-002.
 
 ## Evaluación
 
@@ -46,7 +54,7 @@ Los modelos pueden ser utilizados por:
 - `agents/`
 - `experiments/`
 - `evaluations/`
-- `src/`
+- `src/ms_ia/` (cliente de inferencia)
 
 ## Principio
 

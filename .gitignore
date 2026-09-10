@@ -1,0 +1,6 @@
+# configs locales
+evaluations/config.local.yaml
+**/config.local.yaml
+__pycache__/
+*.pyc
+.venv/

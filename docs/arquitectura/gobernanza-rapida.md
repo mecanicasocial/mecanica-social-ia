@@ -2,6 +2,8 @@
 
 *Para decisiones ágiles sin perder rigor ético y técnico*
 
+> Roles y four-eyes: [`roles-revision.md`](roles-revision.md). Excepción dual temporal de `@LeodanZapata` documentada allí. Model mode y secretos: `infra/secretos-y-entorno.md`, ADR-002.
+
 ---
 
 ## **Flujo en 5 minutos**

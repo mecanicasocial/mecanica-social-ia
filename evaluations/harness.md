@@ -47,8 +47,8 @@ El harness debe poder, en su forma objetivo:
 2. Cargar una suite de casos de prueba.
 3. Ejecutar cada caso en uno de estos modos:
    - **offline / estructural:** valida formato de casos, JSON esperado, campos obligatorios del componente; no llama a un modelo.
-   - **modelo:** envía el prompt + input a un proveedor configurado **fuera del repositorio** (credenciales nunca en Git).
-   - **replay:** compara salidas previamente capturadas (fixtures sintéticas) para regresión.
+   - **model:** envía el prompt + input a un proveedor configurado **fuera del repositorio** (credenciales solo por variables de entorno; ver ADR-002 e `infra/secretos-y-entorno.md`).
+   - **replay:** compara salidas previamente capturadas (fixtures sintéticas) para regresión *(pendiente)*.
 4. Calcular métricas declaradas en el componente o en la suite.
 5. Contrastar umbrales de aceptación.
 6. Emitir un resultado estructurado (ver `resultados.md`).
@@ -223,15 +223,43 @@ Se considerará usable como herramienta de apoyo cuando:
 | Elemento | Estado |
 |---|---|
 | Diseño / contrato (`harness.md`) | Documentado |
-| Implementación `harness.py` | MVP offline disponible |
+| Implementación `harness.py` | Offline + **model** (ADR-002) |
+| Secretos | Solo entorno (`infra/secretos-y-entorno.md`) |
+| Config ejemplo | `evaluations/config.example.yaml` |
 | Suites de casos | `casos-prueba/intake-test-set.yaml` (inicial) |
-| CI smoke-test | `.github/workflows/eval-offline.yml` |
+| Model-card evaluación | `models/openai-compatible-eval/` (propuesto) |
+| CI smoke-test | `.github/workflows/eval-offline.yml` (sin secretos) |
+| CI modo model | Pendiente (`workflow_dispatch` + secrets de org) |
+| Replay | Pendiente |
+
+### 10.1 Modo model (resumen)
+
+```bash
+export MS_IA_MODEL_API_KEY=…
+export MS_IA_MODEL_BASE_URL=…
+export MS_IA_MODEL_ID=…
+python evaluations/harness.py \
+  --component prompts/formulario-intake-v1.0.0.yaml \
+  --suite evaluations/casos-prueba/intake-test-set.yaml \
+  --mode model \
+  --model-ref models/openai-compatible-eval \
+  --output evaluations/resultados/
+```
+
+- Cliente: `src/ms_ia/model_client.py` (OpenAI-compatible).
+- Métricas adicionales: `exactitud_extraccion`, `no_invencion` sobre **salidas del modelo**.
+- `apto_para_aprobacion_operativa` permanece `false`.
+- Sin variables de entorno requeridas → error controlado (no se inventa éxito).
 
 ## 11. Referencias
 
 - `evaluations/README.md`
 - `evaluations/metricas.md`
 - `evaluations/resultados.md`
+- `evaluations/config.example.yaml`
+- `infra/secretos-y-entorno.md`
+- `models/openai-compatible-eval/model-card.md`
+- `docs/arquitectura/ADR/ADR-002-modo-model-secretos-y-proveedor.md`
 - `docs/arquitectura/componentes.md`
 - `docs/arquitectura/arquitectura-general.md`
 - `GOVERNANCE.md`

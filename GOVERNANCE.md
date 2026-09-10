@@ -45,6 +45,11 @@ Se aplica a:
 
 ## Funciones
 
+La separación operativa de estos roles (matriz, excepción dual temporal,
+registros y plantilla de PR) se detalla en
+`docs/arquitectura/roles-revision.md`.
+
+
 ### Autoría
 
 Responsable de:

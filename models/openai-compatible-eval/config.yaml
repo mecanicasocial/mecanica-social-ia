@@ -1,0 +1,26 @@
+# Configuración no sensible — slot de evaluación.
+# Estado: propuesto / solo_evaluacion. NO autorizado para producción ni PII real.
+# Secretos: solo variables de entorno (infra/secretos-y-entorno.md).
+
+id: openai-compatible-eval
+provider: openai-compatible
+estado: propuesto
+model_id: ""   # definir vía MS_IA_MODEL_ID o completar tras autorización
+base_url: ""   # definir vía MS_IA_MODEL_BASE_URL (recomendado) o URL pública
+api_key_env: MS_IA_MODEL_API_KEY
+base_url_env: MS_IA_MODEL_BASE_URL
+model_id_env: MS_IA_MODEL_ID
+timeout_sec: 60
+temperature: 0
+max_tokens: 512
+api_key_header: Authorization
+api_key_prefix: "Bearer "
+finalidad: evaluacion_sintetica
+datos_permitidos_en_inferencia:
+  - sinteticos
+datos_prohibidos_en_inferencia:
+  - pii_real
+  - menores
+  - salud
+  - credenciales
+model_card: model-card.md

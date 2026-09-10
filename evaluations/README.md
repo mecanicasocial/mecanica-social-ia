@@ -12,11 +12,12 @@ El harness **mide**; la gobernanza **decide**.
 | Elemento | Estado |
 |---|---|
 | `harness.md`, `metricas.md`, `resultados.md`, `casos-prueba.md` | Documentados |
-| `harness.py` | **MVP offline implementado** |
-| `casos-prueba/intake-test-set.yaml` | Suite sintética v0.1.0 (6 casos) |
-| `resultados/` | Corridas offline reales |
+| `harness.py` | Offline + **model** (secretos por env) |
+| `config.example.yaml` | Ejemplo no sensible |
+| `casos-prueba/intake-test-set.yaml` | Suite sintética v0.1.0 |
+| `resultados/` | Corridas archivadas |
 | `_plantilla-resultado.json` | Plantilla (no es evidencia) |
-| Modo `model` / `replay` | Pendiente |
+| Modo `replay` | Pendiente |
 | Suites de sesgo / 100+ casos | No existen aún |
 
 ## Cómo ejecutar (offline)
@@ -33,6 +34,26 @@ python evaluations/harness.py \
 El modo offline valida estructura del componente y de la suite.
 Siempre deja `apto_para_aprobacion_operativa: false`.
 
+## Cómo ejecutar (model)
+
+Requiere variables de entorno (nunca en Git). Ver `infra/secretos-y-entorno.md`.
+
+```bash
+export MS_IA_MODEL_API_KEY=…
+export MS_IA_MODEL_BASE_URL=…
+export MS_IA_MODEL_ID=…
+python evaluations/harness.py \
+  --component prompts/formulario-intake-v1.0.0.yaml \
+  --suite evaluations/casos-prueba/intake-test-set.yaml \
+  --mode model \
+  --model-ref models/openai-compatible-eval \
+  --output evaluations/resultados
+```
+
+Métricas adicionales sobre salidas del modelo: `json_valido`,
+`campos_requeridos_presentes`, `exactitud_extraccion`, `no_invencion`.
+Tampoco aprueba uso operativo.
+
 ## Estructura
 
 ```text
@@ -40,6 +61,7 @@ evaluations/
 ├── README.md
 ├── harness.md
 ├── harness.py
+├── config.example.yaml
 ├── metricas.md
 ├── resultados.md
 ├── casos-prueba.md
@@ -47,12 +69,15 @@ evaluations/
 ├── casos-prueba/
 │   └── intake-test-set.yaml
 └── resultados/
-    └── YYYY-MM-DD-<id>-v<ver>-offline.json
+    └── YYYY-MM-DD-<id>-v<ver>-{offline|model}.json
 ```
 
 ## Referencias
 
 - `docs/arquitectura/ADR/ADR-001-arquitectura-inicial-y-mvp-evaluacion.md`
+- `docs/arquitectura/ADR/ADR-002-modo-model-secretos-y-proveedor.md`
+- `models/openai-compatible-eval/model-card.md`
+- `infra/secretos-y-entorno.md`
 - `GOVERNANCE.md`
 - `DATA_GOVERNANCE.md`
 - `SECURITY.md`
