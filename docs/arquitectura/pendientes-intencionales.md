@@ -21,7 +21,7 @@ Si falta un acuerdo, un vendor, un segundo maintainer o un secreto de organizaci
 | PEND-001 | Vendor productivo + **INT-002** validado | Requiere **autorización institucional** (proveedor, datos en tránsito, evaluación y adopción) | Sin vendor en `models/`; INT-002 en estado **Propuesto** | Autorización institucional + registro del proveedor + evidencia de evaluación + INT-002 al menos en **Validada** | `integraciones.md`, `models/README.md`, `DATA_GOVERNANCE.md` |
 | PEND-002 | **INT-001** confirmado con Escuela | Requiere **confirmación bilateral** con `mecanica-social-escuela` (contrato, datos, responsabilidades) | INT-001 en estado **Propuesto**; propósito y datos “Por definir” | Confirmación bilateral documentada (sin inventar API) + actualización del inventario de integraciones | `integraciones.md`, `DATA_GOVERNANCE.md` |
 | PEND-003 | Teams / segundo maintainer en `CODEOWNERS` | **Four-eyes real** con más de una persona (roles de `GOVERNANCE.md` no colapsados en un solo actor) | `CODEOWNERS` y `NOTICE` solo con `@LeodanZapata` | Segundo maintainer o Team de GitHub real en `CODEOWNERS` / roles, sin inventar handles | `CODEOWNERS`, `NOTICE`, `GOVERNANCE.md` |
-| PEND-004 | CI job **model** | Solo con **secrets de organización** en el repo canónico; **no** en forks | No hay workflows CI reales; solo mención de smoke-test pendiente | Workflow en repo canónico, secrets de org, guards anti-fork; job model separado del smoke offline | `evaluations/harness.md`, `.github/workflows/`, `infra/README.md`, `SECURITY.md` |
+| PEND-004 | CI job **model** | Solo con **secrets de organización** en el repo canónico; **no** en forks | Existe smoke offline (`eval-offline.yml`); **no** hay job model | Workflow model en repo canónico, secrets de org, guards anti-fork; separado del smoke offline | `evaluations/harness.md`, `.github/workflows/`, `infra/README.md`, `SECURITY.md` |
 
 ## 4. Detalle
 
@@ -45,11 +45,12 @@ Si falta un acuerdo, un vendor, un segundo maintainer o un secreto de organizaci
 
 ### PEND-004 — CI job model
 
-- **Qué no hay hoy:** YAML de CI bajo `.github/workflows/` (solo placeholder).
+- **Qué hay hoy:** smoke offline en `.github/workflows/eval-offline.yml` (sin secretos ni red de modelo).
+- **Qué no hay:** job de inferencia con proveedor.
 - **Distinción:**
-  - **Smoke / offline:** puede diseñarse sin secretos ni red.
+  - **Smoke / offline:** implementado en P1; sin secretos ni red.
   - **Job model:** implica credenciales de proveedor → solo secrets de **organización**, en el repositorio canónico, **nunca** expuestos a forks no confiables.
-- **Por qué no se inventa el workflow aquí:** sin secrets de org y sin política de guards, un job model sería inseguro o simbólico.
+- **Por qué no se inventa el job model aquí:** sin secrets de org y sin política de guards, un job model sería inseguro o simbólico.
 - **Desbloqueo mínimo:** secretos configurados en la org; condición de ejecución que excluya forks; separación explícita del job offline.
 
 ## 5. Relación con estados de integración

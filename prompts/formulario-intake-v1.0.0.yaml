@@ -10,8 +10,8 @@ proposito: |
   y extraer información estructurada de beneficiarios.
 
 # Ejemplo de metadatos y formato. NO es un componente operativo ni
-# autorizado para uso institucional. Falta suite formal en
-# evaluations/casos-prueba/ y corrida con alcance declarado.
+# autorizado para uso institucional. Suite canónica offline:
+# evaluations/casos-prueba/intake-test-set.yaml (no basta para promoción).
 alcance: ejemplo-no-operativo
 
 area_responsable: "Formación Institucional"
@@ -38,8 +38,8 @@ fuentes_autorizadas:
 limitaciones_conocidas:
   - No valida direcciones fuera de Chile
   - Sensible a caracteres especiales
-  - Sin evidencia formal de evaluación en evaluations/
-  - Un solo ejemplo embebido; no sustituye suite de casos
+  - Evidencia formal solo offline (estructural); no mide el modelo
+  - Un solo ejemplo embebido; la suite canónica vive en evaluations/casos-prueba/
 
 prompt_text: |
   Eres un asistente que procesa solicitudes de capacitación.
@@ -77,10 +77,11 @@ ejemplos:
       }
 
 evaluacion:
+  suite_canonica: evaluations/casos-prueba/intake-test-set.yaml
   metricas:
     - tipo: exactitud_extraccion
       objetivo: ≥95%
-      metodo: Comparar con ground truth manual
+      metodo: Comparar con ground truth manual (requiere modo model)
     - tipo: coherencia_estructura
       objetivo: 100%
       metodo: JSON válido en todas las respuestas
@@ -89,8 +90,8 @@ evaluacion:
     - "Todos los campos requeridos presentes"
     - "No hay respuestas vacías cuando info disponible"
     - "Formato JSON correcto"
-  # La evidencia formal de evaluación solo se archiva bajo evaluations/.
-  evidencia_formal: pendiente
+  # Evidencia formal solo bajo evaluations/. Offline = estructural, no promoción.
+  evidencia_formal: offline-estructural
 
 supervision_humana:
   requerida: sí
@@ -111,4 +112,11 @@ revisiones:
       alcance ejemplo-no-operativo; supervisión alineada a PII;
       evidencia formal pendiente en evaluations/.
     revisado_por: "Auditoría arquitectura"
+    aprobado_por: "N/A — sin aprobación operativa"
+  - fecha: 2026-09-10
+    version: 1.0.0
+    cambio: |
+      P1 MVP: enlaza suite_canonica intake-test-set.yaml;
+      evidencia_formal offline-estructural (no operativa).
+    revisado_por: "MVP evaluación ejecutable"
     aprobado_por: "N/A — sin aprobación operativa"

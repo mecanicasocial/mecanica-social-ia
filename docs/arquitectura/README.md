@@ -116,10 +116,10 @@ Checklist mínimo para cerrar la Issue #1
 - [ ] Riesgos técnicos iniciales identificados y mitigaciones propuestas (gobernanza.md)
 
 Próximos pasos (inmediatos)
-1. Añadir este README en docs/arquitectura/README.md (branch: issue-1/arquitectura-general).
-2. Crear PR (Draft si faltan diagramas) con el README y la estructura de carpetas vacía.
-3. Completar arquitectura-general.md con diagrama y ADRs y pedir revisión técnica + gobernanza.
-4. Implementar un experimento de ejemplo y un harness de evaluación ligero.
+1. ~~Añadir este README y estructura de carpetas.~~
+2. ~~Completar arquitectura-general.md y componentes.~~
+3. ~~P1: harness offline ejecutable + suite intake (ver PRACTICO.md y ADR-001).~~
+4. P2+: modo model (PEND-004), vendor (PEND-001), INT-001 (PEND-002).
 
 Referencias y notas
 - Registrar decisiones importantes en docs/arquitectura/adr/.

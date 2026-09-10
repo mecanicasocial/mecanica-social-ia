@@ -183,14 +183,12 @@ Antes de commitear un resultado, verificar:
 
 ## 9. Estado actual del repositorio
 
-Al documentar este diseño:
+- Existe la convención de carpetas, el esquema y el harness offline (P1).
+- Las corridas en `evaluations/resultados/` provienen de ejecuciones reales del harness.
+- El modo offline deja siempre `apto_para_aprobacion_operativa: false`.
+- **No** se archivan corridas inventadas con tasas de éxito ficticias de modelo.
 
-- Existe la convención de carpetas y el esquema.
-- **No** se archivan corridas inventadas con tasas de éxito ficticias.
-- Cualquier evaluación histórica deberá crearse solo tras una ejecución real y revisión de contenido.
-
-La plantilla versionada `evaluations/_plantilla-resultado.json` sirve para validar forma y para copiar estructura; su `resumen.apto_para_aprobacion_operativa` permanece en `false`.
-
+La plantilla versionada `evaluations/_plantilla-resultado.json` sirve para validar forma y para copiar estructura; no es evidencia.
 ## 10. Referencias
 
 - `evaluations/harness.md`
