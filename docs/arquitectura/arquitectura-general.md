@@ -28,6 +28,7 @@ mecanica-social-ia/
 │       ├── arquitectura-general.md
 │       ├── componentes.md
 │       ├── integraciones.md
+│       ├── pendientes-intencionales.md
 │       ├── gobernanza.md
 │       └── adr/
 ├── prompts/

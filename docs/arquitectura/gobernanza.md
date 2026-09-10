@@ -139,10 +139,11 @@ Cambios en archivos críticos → Siempre (LICENSE, GOVERNANCE, etc.) Nuevo prom
 ## Próximos Pasos
 
 1. ✅ **Licencia definida** (LICENSE.md)
-2. ✅ **Responsables asignados** (@LeodanZapata)
-3. ⏳ **Crear primer prompt ejemplo** (formulario-intake-v1.0.0.yaml)
-4. ⏳ **Crear harness de evaluación operativo** (evaluations/harness.py)
-5. ⏳ **Documentar integraciones** con mecanica-social-escuela
+2. ✅ **Responsables asignados** (@LeodanZapata) — segundo maintainer / Teams pendiente a propósito (PEND-003)
+3. ✅ **Primer prompt ejemplo** (`prompts/formulario-intake-v1.0.0.yaml`)
+4. ⏳ **Harness de evaluación operativo** (`evaluations/harness.py`; diseño en `harness.md`)
+5. ⏳ **Integraciones** INT-001 / INT-002: inventario en `integraciones.md`; confirmación y vendor **bloqueados a propósito** (ver `pendientes-intencionales.md`)
+6. ⏳ **CI:** smoke offline vs job model (PEND-004; secrets de org, no forks)
 
 ---
 

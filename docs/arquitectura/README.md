@@ -21,6 +21,7 @@ Alcance de este README
 
 Componentes principales (visión rápida)
 - docs/arquitectura/: Documentación de arquitectura y decisiones (ADRs).
+- docs/arquitectura/pendientes-intencionales.md: Huecos dejados a propósito (vendor, INT-001/002, CODEOWNERS multi-persona, CI model).
 - prompts/: Registro versionado de prompts y metadatos.
 - models/: Configs, model-cards y referencias a pesos/servicios.
 - agents/: Implementaciones y manifiestos de agentes.
@@ -124,6 +125,7 @@ Referencias y notas
 - Registrar decisiones importantes en docs/arquitectura/adr/.
 - Mantener un CHANGELOG para cambios significativos de arquitectura.
 - Para cualquier integración con `mecanica-social-escuela`, definir contrato de datos y API en docs/arquitectura/integraciones.md.
+- Lo que queda pendiente **a propósito** (sin inventar vendor, contrato Escuela, segundo maintainer ni job CI model) está en [pendientes-intencionales.md](pendientes-intencionales.md).
 
 Contacto
 - Owner técnico (asignar en la Issue): @LeodanZapata
