@@ -223,9 +223,9 @@ Se considerará usable como herramienta de apoyo cuando:
 | Elemento | Estado |
 |---|---|
 | Diseño / contrato (`harness.md`) | Documentado |
-| Implementación `harness.py` | Pendiente / no requerida para cerrar el diseño |
-| Suites de casos | Estructura prevista; contenido inicial mínimo opcional |
-| CI smoke-test (offline, sin secretos) | Pendiente de diseño/implementación |
+| Implementación `harness.py` | **MVP offline implementado** (P1); modos `model`/`replay` pendientes |
+| Suites de casos | `casos-prueba/intake-test-set.yaml` (sintético v0.1.0) |
+| CI smoke-test (offline, sin secretos) | `.github/workflows/eval-offline.yml` |
 | CI job **model** (inferencia con proveedor) | Pendiente **intencional** (PEND-004): solo con secrets de **organización** en el repo canónico; **no** en forks. Ver `docs/arquitectura/pendientes-intencionales.md` |
 
 ## 11. Referencias

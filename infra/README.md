@@ -41,6 +41,12 @@ Nunca almacenar directamente:
 Los secretos deberán administrarse mediante mecanismos seguros
 de gestión de configuración.
 
+## CI actual
+
+El smoke-test offline vive en `.github/workflows/eval-offline.yml`
+(sin secretos). El job de inferencia con modelo es pendiente intencional
+(PEND-004): ver `docs/arquitectura/pendientes-intencionales.md`.
+
 ## Principio
 
 La infraestructura debe ser reproducible, documentada y separada

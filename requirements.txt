@@ -1,0 +1,3 @@
+# Dependencias mínimas del MVP de evaluación offline.
+# No incluye SDKs de proveedores de modelos.
+PyYAML>=6.0.1

@@ -6,12 +6,12 @@ Esta carpeta contiene los prompts versionados utilizados por
 ```text
 prompts/
 ├── README.md                          ← Guía de uso
-└── formulario-intake-v1.0.0.yaml      ← Ejemplo de formato (estado: prueba; no operativo)
+├── esquema-prompt.yaml                ← Plantilla de metadatos (no ejecutable)
+└── formulario-intake-v1.0.0.yaml      ← Ejemplo (estado: prueba; no operativo)
 ```
 
-> **Nota:** `esquema-prompt.yaml` y otros prompts citados en documentación
-> histórica son aspiracionales hasta que existan en este directorio.
-> No hay harness ni suites de prueba bajo `prompts/`.
+> **Nota:** No hay harness ni suites de prueba bajo `prompts/`.
+> La evidencia vive solo en `evaluations/`.
 
 ## Propósito
 
@@ -66,7 +66,8 @@ en el YAML del prompt **no** basta.
 | `estado` | `prueba` |
 | `alcance` | `ejemplo-no-operativo` |
 | `nivel_riesgo` | `medio` (PII de beneficiarios) |
-| Evidencia formal | Pendiente en `evaluations/` |
+| Suite canónica | `evaluations/casos-prueba/intake-test-set.yaml` |
+| Evidencia formal | Offline estructural en `evaluations/resultados/` (no operativa) |
 
 No utilizar este archivo como componente productivo ni presentarlo como
 autorizado institucionalmente.

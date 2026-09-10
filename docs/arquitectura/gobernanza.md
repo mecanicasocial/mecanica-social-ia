@@ -141,9 +141,9 @@ Cambios en archivos críticos → Siempre (LICENSE, GOVERNANCE, etc.) Nuevo prom
 1. ✅ **Licencia definida** (LICENSE.md)
 2. ✅ **Responsables asignados** (@LeodanZapata) — segundo maintainer / Teams pendiente a propósito (PEND-003)
 3. ✅ **Primer prompt ejemplo** (`prompts/formulario-intake-v1.0.0.yaml`; estado `prueba`, alcance no operativo; P0)
-4. ⏳ **Harness de evaluación operativo** (`evaluations/harness.py`; diseño en `harness.md`)
+4. ✅ **P1 — MVP evaluación ejecutable** (`evaluations/harness.py` offline, suite intake, CI smoke; ver `PRACTICO.md` y ADR-001)
 5. ⏳ **Integraciones** INT-001 / INT-002: inventario en `integraciones.md`; confirmación y vendor **bloqueados a propósito** (ver `pendientes-intencionales.md`)
-6. ⏳ **CI:** smoke offline vs job model (PEND-004; secrets de org, no forks)
+6. ⏳ **CI job model** (PEND-004; secrets de org, no forks) — smoke offline ya existe
 
 ---
 
