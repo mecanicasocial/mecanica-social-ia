@@ -318,8 +318,7 @@ restringido: limitado a determinados contextos o personas.
 obsoleto: sustituido por una versión posterior.
 suspendido: uso interrumpido mientras se analiza un riesgo.
 retirado: no debe utilizarse.
-Documentos de gobernanza
-
+Documentos de gobernanza​
 - [Contribuciones](CONTRIBUTING.md)
 - [Código de conducta](CODE_OF_CONDUCT.md)
 - [Gobernanza](GOVERNANCE.md)
