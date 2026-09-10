@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://mecanicasocial.org/schemas/int-001-solicitud-formacion.schema.json",
+  "title": "INT-001 Solicitud de formación (provisional)",
+  "description": "Payload de negocio propuesto para INT-001. Sintético/provisional; no implica API real de Escuela.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["texto_formulario", "clasificacion_datos"],
+  "properties": {
+    "solicitud_id": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Identificador opaco asignado por Escuela; sin PII embebida."
+    },
+    "texto_formulario": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Texto libre de la solicitud de participación."
+    },
+    "programa_ref": {
+      "type": "string",
+      "description": "Referencia de programa o curso (no datos personales)."
+    },
+    "locale": {
+      "type": "string",
+      "default": "es-CL"
+    },
+    "clasificacion_datos": {
+      "type": "string",
+      "enum": ["sintetica", "publica", "autorizada"]
+    }
+  }
+}

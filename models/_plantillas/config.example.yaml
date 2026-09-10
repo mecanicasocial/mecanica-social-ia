@@ -1,0 +1,26 @@
+# Plantilla de configuración no sensible de modelo.
+# Copiar a models/<id>/config.yaml — NUNCA pegar API keys aquí.
+
+id: nombre-del-modelo
+provider: openai-compatible   # único soportado por src/ms_ia hoy
+estado: propuesto             # propuesto | solo_evaluacion | autorizado | restringido | retirado
+model_id: ""                  # id en el proveedor; sobrescribible con MS_IA_MODEL_ID
+base_url: ""                  # URL pública del endpoint; preferible MS_IA_MODEL_BASE_URL
+api_key_env: MS_IA_MODEL_API_KEY
+base_url_env: MS_IA_MODEL_BASE_URL
+model_id_env: MS_IA_MODEL_ID
+timeout_sec: 60
+temperature: 0
+max_tokens: 512
+# Parámetros de auth no secretos:
+api_key_header: Authorization
+api_key_prefix: "Bearer "
+finalidad: evaluacion_sintetica
+datos_permitidos_en_inferencia:
+  - sinteticos
+datos_prohibidos_en_inferencia:
+  - pii_real
+  - menores
+  - salud
+  - credenciales
+model_card: model-card.md

@@ -132,3 +132,15 @@ Contacto
 - Persona gobernanza (recomendado): [elegir responsable]
 
 (Plantilla inicial: ampliar en docs/arquitectura/arquitectura-general.md y componentes.md según avance)
+
+## Actualización 2026-09 (ola práctica)
+
+Documentos adicionales:
+
+- [`roles-revision.md`](roles-revision.md) — separación de roles de revisión
+- [`contratos/INT-001-escuela.md`](contratos/INT-001-escuela.md) — contrato provisional con Escuela
+- [`ADR/ADR-002-modo-model-secretos-y-proveedor.md`](ADR/ADR-002-modo-model-secretos-y-proveedor.md) — modo model y secretos
+- Inventario de integraciones: [`integraciones.md`](integraciones.md)
+
+Estado honesto: harness offline+model; model-card de evaluación **propuesta** (no productiva); INT-001 provisional.
+

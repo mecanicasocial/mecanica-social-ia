@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 __pycache__/
 *.py[cod]
 .Python
@@ -5,3 +6,11 @@ __pycache__/
 venv/
 *.egg-info/
 .pytest_cache/
+=======
+# configs locales
+evaluations/config.local.yaml
+**/config.local.yaml
+__pycache__/
+*.pyc
+.venv/
+>>>>>>> origin/main

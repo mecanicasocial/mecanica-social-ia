@@ -25,10 +25,19 @@ Responsable Técnico:           @LeodanZapata
 Responsable de Gobernanza:     @LeodanZapata
 Responsable de Ética:          @LeodanZapata
 
+<<<<<<< HEAD
 Nota: la concentración actual de roles en una sola persona es un estado
 transitorio documentado. Un segundo maintainer o Team para four-eyes real
 queda pendiente a propósito (PEND-003); no se inventan handles.
 Ver docs/arquitectura/pendientes-intencionales.md
+=======
+Nota: en esta etapa los tres roles los ejerce la misma persona (excepción de
+rol dual documentada en docs/arquitectura/roles-revision.md). En riesgo alto
+se exige un segundo participante en el registro de decisión.
+
+Separación de roles de revisión: docs/arquitectura/roles-revision.md
+Registros de decisión: docs/gobernanza/registros/
+>>>>>>> origin/main
 
 Para preguntas sobre licencias, gobernanza o ética, contacta al equipo de gobernanza
 a través de: governance@mecanicasocial.org

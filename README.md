@@ -11,6 +11,12 @@ Este repositorio reúne la arquitectura, metodologías, prompts, modelos, evalua
 
 La inteligencia artificial se entiende como una herramienta para fortalecer las capacidades humanas e institucionales. No sustituye la responsabilidad profesional, académica, administrativa, comunitaria ni institucional de quienes toman decisiones.
 
+## Empezar en la práctica
+
+Para pasar del marco documental a comandos y artefactos ejecutables, ver **[PRACTICO.md](PRACTICO.md)**.
+
+Estado actual del MVP: prompt de intake en **prueba**, harness **offline**, suite sintética y CI de humo. No hay aprobación operativa automática.
+
 ## Propósito institucional
 
 Fortalecer la capacidad de las personas e instituciones para colaborar, participar y producir soluciones públicas con impacto territorial.
@@ -346,7 +352,7 @@ No publiques vulnerabilidades, exposiciones de datos, credenciales o incidentes 
 Consulta ​SECURITY.md​.
 
 Licencia
-La licencia del repositorio requiere definición y aprobación institucional.
+La licencia del repositorio está definida en `LICENSE.md` (documentación/prompts: CC-BY-4.0; código: Apache-2.0).
 
 Antes de reutilizar, distribuir o publicar contenidos deberá comprobarse la licencia aplicable al código, documentación, prompts, modelos, datos, imágenes, bibliografía y materiales de terceros.
 

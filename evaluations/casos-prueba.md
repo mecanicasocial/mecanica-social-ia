@@ -12,7 +12,11 @@ evaluations/casos-prueba/
 └── sesgo-detection-suite.yaml
 ```
 
+<<<<<<< HEAD
 Existe al menos una suite de ejemplo: `evaluations/casos-prueba/intake-test-set.yaml` (sintéticos, sin PII real). Este documento sigue siendo la **norma de diseño** para nuevas suites.
+=======
+Norma de diseño de suites. Suite inicial disponible: `evaluations/casos-prueba/intake-test-set.yaml` (sintéticos, sin PII real).
+>>>>>>> origin/main
 
 ## Campos mínimos de una suite
 
@@ -43,7 +47,11 @@ casos:
 
 ## Relación con el prompt de ejemplo
 
+<<<<<<< HEAD
 `prompts/formulario-intake-v1.0.0.yaml` está en estado `prueba` (alcance `ejemplo-no-operativo`, riesgo `medio`). La suite canónica es `evaluations/casos-prueba/intake-test-set.yaml`. Las corridas offline se archivan en `evaluations/resultados/` y **no** bastan para promoción operativa. La evidencia no se archiva bajo `prompts/`.
+=======
+`prompts/formulario-intake-v1.0.0.yaml` declara métricas y un ejemplo. La evidencia formal empieza con la suite `intake-test-set` y corridas en `evaluations/resultados/`. El modo offline **no** prueba el modelo ni otorga estado `aprobado`.
+>>>>>>> origin/main
 
 ## Referencias
 

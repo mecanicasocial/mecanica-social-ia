@@ -46,8 +46,13 @@ Criterio rápido: datos personales, decisiones sobre derechos/acceso, comunicaci
 
 - Suite:
 - Métricas:
+<<<<<<< HEAD
 - ¿Corrida offline?
 - ¿Corrida con modelo? (requiere entorno autorizado; PEND-004)
+=======
+- ¿Corrida offline? 
+- ¿Corrida con modelo? (requiere entorno autorizado)
+>>>>>>> origin/main
 
 ## Supervisión humana
 

@@ -102,10 +102,22 @@ Los registros no deben exponer secretos ni datos personales innecesarios.
 
 | ID | Sistema origen | Sistema destino | Propósito | Datos | Estado |
 |---|---|---|---|---|---|
-| INT-001 | Mecánica Social Escuela | Mecánica Social IA | Por definir | Por definir | Propuesto |
-| INT-002 | Mecánica Social IA | Proveedor de modelo | Inferencia IA | Por definir | Propuesto |
+| INT-001 | Mecánica Social Escuela | Mecánica Social IA | Asistencia en solicitudes de formación (intake) | Texto de solicitud; schema sintético provisional | **Provisional** — ver contrato |
+| INT-002 | Mecánica Social IA | Proveedor de modelo | Inferencia para evaluación / futuro uso autorizado | Solo sintéticos hasta autorización | Propuesto (slot `openai-compatible-eval`) |
 
-Estas filas son referencias iniciales y no presuponen integraciones implementadas.
+Estas filas no presuponen integraciones productivas implementadas.
+
+### Contratos versionados
+
+| ID | Documento | Notas |
+|---|---|---|
+| INT-001 | [`contratos/INT-001-escuela.md`](contratos/INT-001-escuela.md) | Provisional; falta confirmación con Escuela |
+| INT-002 | Model-card + `models/openai-compatible-eval/` + ADR-002 | Vendor productivo aún no autorizado |
+
+Schema/muestra sintéticos INT-001:
+
+- `data/schemas/int-001-solicitud-formacion.schema.json`
+- `data/samples/int-001-solicitud-formacion.sample.json`
 
 ### Notas de bloqueo intencional
 

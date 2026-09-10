@@ -56,6 +56,13 @@ Los datos utilizados por los sistemas de IA deben ser trazables,
 adecuados para el propósito y tratados de acuerdo con las reglas
 de seguridad y gobernanza definidas para el proyecto.
 
+## Inventario actual
+
+| Ruta | Descripción |
+|---|---|
+| `schemas/int-001-solicitud-formacion.schema.json` | Schema provisional INT-001 (sintético) |
+| `samples/int-001-solicitud-formacion.sample.json` | Muestra sintética INT-001 |
+
 ## Referencias
 
 - [`DATA_GOVERNANCE.md`](../DATA_GOVERNANCE.md)

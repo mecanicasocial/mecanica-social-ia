@@ -15,7 +15,11 @@ La auditoría del proceso identificó una brecha entre política y práctica:
 prompts marcados como aprobados sin evidencia, harness solo en markdown y
 plantillas GitHub no operativas.
 
+<<<<<<< HEAD
 Se necesita un primer paso **práctico y reversible** (P1) que:
+=======
+Se necesita un primer paso **práctico y reversible** que:
+>>>>>>> origin/main
 
 1. Mantenga la separación de carpetas ya definida.
 2. Haga ejecutable la evaluación estructural (offline).
@@ -30,13 +34,20 @@ Se necesita un primer paso **práctico y reversible** (P1) que:
    `evaluations/harness.md`.
 3. Las suites de casos viven en `evaluations/casos-prueba/`.
 4. Las corridas se archivan en `evaluations/resultados/`.
+<<<<<<< HEAD
 5. El MVP (P1) implementa solo modo **offline** (validación estructural).
+=======
+5. El MVP implementa solo modo **offline** (validación estructural).
+>>>>>>> origin/main
 6. Todo resultado offline declara `apto_para_aprobacion_operativa: false`.
 7. Los estados de componente en español preferidos son:
    `borrador`, `prueba`, `aprobado`, `restringido`, `obsoleto`, `suspendido`, `retirado`.
 8. No se versionan PII reales ni secretos; las suites son sintéticas.
+<<<<<<< HEAD
 9. CI smoke offline (`.github/workflows/eval-offline.yml`) no usa secretos ni
    llama a proveedores; el job **model** permanece pendiente intencional (PEND-004).
+=======
+>>>>>>> origin/main
 
 ## Alternativas consideradas
 
@@ -66,7 +77,12 @@ Se necesita un primer paso **práctico y reversible** (P1) que:
 
 - `docs/arquitectura/arquitectura-general.md`
 - `evaluations/harness.md`
+<<<<<<< HEAD
 - `PRACTICO.md`
 - `GOVERNANCE.md`
 - `DATA_GOVERNANCE.md`
 - `docs/arquitectura/pendientes-intencionales.md`
+=======
+- `GOVERNANCE.md`
+- `DATA_GOVERNANCE.md`
+>>>>>>> origin/main

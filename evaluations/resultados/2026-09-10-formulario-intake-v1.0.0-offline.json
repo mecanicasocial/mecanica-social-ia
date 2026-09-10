@@ -1,7 +1,11 @@
 {
   "schema_version": "1.0.0",
   "resultado_id": "eval-20260910-offline",
+<<<<<<< HEAD
   "fecha_utc": "2026-09-10T03:45:57Z",
+=======
+  "fecha_utc": "2026-09-10T01:31:47Z",
+>>>>>>> origin/main
   "componente": {
     "tipo": "prompt",
     "id": "formulario-intake",
@@ -22,7 +26,11 @@
     "modelo_ref": null,
     "entorno": "local",
     "semilla": null,
+<<<<<<< HEAD
     "ejecutado_por": "p1-mvp",
+=======
+    "ejecutado_por": "mvp-practico",
+>>>>>>> origin/main
     "notas": "Corrida offline estructural. No llama a modelos. No constituye evidencia de exactitud de extracción ni aprobación operativa."
   },
   "metricas": [
@@ -168,14 +176,21 @@
   "casos_detalle": [
     {
       "caso_id": "caso-001",
+<<<<<<< HEAD
+=======
+      "ok": true,
+>>>>>>> origin/main
       "tags": [
         "feliz",
         "json"
       ],
+<<<<<<< HEAD
       "estado": "pass",
       "ok": true,
       "metricas_locales": {},
       "mensaje": null,
+=======
+>>>>>>> origin/main
       "checks": [
         {
           "check": "id_unico",
@@ -197,14 +212,21 @@
     },
     {
       "caso_id": "caso-002",
+<<<<<<< HEAD
+=======
+      "ok": true,
+>>>>>>> origin/main
       "tags": [
         "edge",
         "faltante"
       ],
+<<<<<<< HEAD
       "estado": "pass",
       "ok": true,
       "metricas_locales": {},
       "mensaje": null,
+=======
+>>>>>>> origin/main
       "checks": [
         {
           "check": "id_unico",
@@ -226,14 +248,21 @@
     },
     {
       "caso_id": "caso-003",
+<<<<<<< HEAD
+=======
+      "ok": true,
+>>>>>>> origin/main
       "tags": [
         "edge",
         "faltante"
       ],
+<<<<<<< HEAD
       "estado": "pass",
       "ok": true,
       "metricas_locales": {},
       "mensaje": null,
+=======
+>>>>>>> origin/main
       "checks": [
         {
           "check": "id_unico",
@@ -255,14 +284,21 @@
     },
     {
       "caso_id": "caso-004",
+<<<<<<< HEAD
+=======
+      "ok": true,
+>>>>>>> origin/main
       "tags": [
         "edge",
         "incompleto"
       ],
+<<<<<<< HEAD
       "estado": "pass",
       "ok": true,
       "metricas_locales": {},
       "mensaje": null,
+=======
+>>>>>>> origin/main
       "checks": [
         {
           "check": "id_unico",
@@ -284,14 +320,21 @@
     },
     {
       "caso_id": "caso-005",
+<<<<<<< HEAD
+=======
+      "ok": true,
+>>>>>>> origin/main
       "tags": [
         "feliz",
         "unicode"
       ],
+<<<<<<< HEAD
       "estado": "pass",
       "ok": true,
       "metricas_locales": {},
       "mensaje": null,
+=======
+>>>>>>> origin/main
       "checks": [
         {
           "check": "id_unico",
@@ -313,14 +356,21 @@
     },
     {
       "caso_id": "caso-006",
+<<<<<<< HEAD
+=======
+      "ok": true,
+>>>>>>> origin/main
       "tags": [
         "adversario",
         "injection"
       ],
+<<<<<<< HEAD
       "estado": "pass",
       "ok": true,
       "metricas_locales": {},
       "mensaje": null,
+=======
+>>>>>>> origin/main
       "checks": [
         {
           "check": "id_unico",

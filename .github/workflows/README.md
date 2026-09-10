@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Workflows CI
 
 ## Activos
@@ -17,3 +18,24 @@ El job offline **no** llama a proveedores de modelos y **no** declara aprobació
 Detalle: `docs/arquitectura/pendientes-intencionales.md`.
 
 No añadir un job `model` hasta contar con secrets de org y guards anti-fork documentados/aceptados.
+=======
+# Workflows
+
+## Activos
+
+| Workflow | Propósito |
+|---|---|
+| `eval-offline.yml` | Smoke-test del harness offline (sin secretos, sin red de modelos) |
+
+## Pendiente
+
+- Validación de enlaces markdown
+- Secret scanning adicional al de la plataforma
+- Job de modo `model` solo con `workflow_dispatch` / rama protegida y
+  secretos de organización (`MS_IA_MODEL_*`). **Nunca** en PRs de forks.
+
+## Referencias
+
+- `infra/secretos-y-entorno.md`
+- ADR-002
+>>>>>>> origin/main

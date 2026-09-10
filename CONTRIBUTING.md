@@ -32,6 +32,12 @@ Se aceptan aportes relacionados con:
 - Casos de uso organizacionales.
 - Investigación aplicada.
 
+## Roles de revisión
+
+Los aportes pasan por roles definidos en `GOVERNANCE.md` y operados en
+`docs/arquitectura/roles-revision.md`. La plantilla de PR pide revisores por rol.
+El harness no aprueba componentes.
+
 ## Flujo de trabajo
 
 1. Crear una rama específica para el cambio.

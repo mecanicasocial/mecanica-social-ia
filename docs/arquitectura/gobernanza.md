@@ -13,7 +13,19 @@ Responde estas 3 preguntas:
 
 ### **1. Sistema de Prompts Versionado**
 
+<<<<<<< HEAD
 prompts/ ├── README.md [Guía y convenciones] └── formulario-intake-v1.0.0.yaml [Ejemplo en prueba; no operativo; riesgo medio]
+=======
+```text
+prompts/
+├── README.md
+├── esquema-prompt.yaml
+└── formulario-intake-v1.0.0.yaml   # estado: prueba (riesgo medio)
+```
+
+`resumidor-solicitudes` y carpetas `.evaluaciones` bajo prompts **no existen**.
+Las suites viven en `evaluations/casos-prueba/`.
+>>>>>>> origin/main
 
 
 **Responsabilidad**: @LeodanZapata (técnica, metodológica, ética)
@@ -27,7 +39,18 @@ prompts/ ├── README.md [Guía y convenciones] └── formulario-intake-
 
 ### **2. Sistema de Modelos y Configuraciones**
 
-models/ ├── README.md [Modelos disponibles] ├── openai-gpt4/ │ ├── config.yaml [Parámetros, costo, límites] │ └── model-card.md [Capacidades, limitaciones, riesgos] └── anthropic-claude/ ├── config.yaml └── model-card.md
+Estado actual:
+
+```text
+models/
+├── README.md
+├── _plantillas/
+└── openai-compatible-eval/   # propuesto / solo evaluación (ADR-002)
+    ├── config.yaml
+    └── model-card.md
+```
+
+Proveedor **productivo** autorizado: aún no. Ver model-card y roles de revisión.
 
 
 **Responsabilidad**: @LeodanZapata (elige modelos, valida licencias)
@@ -44,18 +67,29 @@ models/ ├── README.md [Modelos disponibles] ├── openai-gpt4/ │ ├
 
 ### **3. Sistema de Evaluaciones**
 
-evaluations/ ├── harness.py [Script principal] ├── metricas.py [Cálculo de BLEU, ROUGE, etc.] ├── casos-prueba/ │ ├── intake-test-set.yaml [100+ casos validados] │ └── sesgo-detection-suite.yaml [Pruebas de equidad] └── resultados/ └── 2024-09-06-formulario-intake.json [Resultado de evaluación]
+Estado actual:
+
+```text
+evaluations/
+├── harness.py                 # offline + model (secretos por env)
+├── config.example.yaml
+├── casos-prueba/intake-test-set.yaml
+└── resultados/*-{offline|model}.json
+```
+
+Aún no hay suites de 100+ casos ni métricas tipo BLEU como primarias.
 
 
-**Responsabilidad**: @LeodanZapata (define métricas, valida pruebas)
+**Responsabilidad**: @LeodanZapata (define métricas, valida pruebas) — ver roles-revision.md
 
-**Ejecución**: `python harness.py prompts/formulario-intake-v1.0.0.yaml`
+**Ejecución**: ver `PRACTICO.md` / `evaluations/README.md`
 
 ---
 
 ### **4. Sistema de Agentes Automatizados**
 
-gents/ ├── README.md [Manifiesto de agentes] ├── asistente-formacion/ │ ├── agent.yaml [Definición del agente] │ ├── prompts.yaml [Lista de prompts utilizados] │ └── integraciones.yaml [APIs externas] └── orquestador-proyectos/ ├── agent.yaml └── prompts.yaml
+Estado actual: solo `agents/README.md`. No hay agentes implementados.
+Los nombres `asistente-formacion` / `orquestador-proyectos` son **ejemplos futuros**, no inventario real.
 
 
 **Responsabilidad**: @LeodanZapata (verifica seguridad y permisos)
@@ -90,11 +124,13 @@ Raíz del repo/ ├── GOVERNANCE.md [Proceso de aprobación formal] ├─�
 mecanica-social-escuela mecanica-social-ia (Plataforma educativa) (Sistema de IA) │ │ │ │ Programas ◄──────────────────────► Prompts Contenido ◄──────────────────────► Modelos Evaluación ◄────────────────────► Agentes │ │ └─────────────────────────────────────┘ (API Contract)
 
 
-**Flujo de datos de mecanica-social-escuela → mecanica-social-ia**:
-1. API en escuela expone: listado de programas, materiales, evaluaciones
-2. IA ingesta esta información (batch o en tiempo real)
-3. Genera: resúmenes, recomendaciones, análisis, automatizaciones
-4. Retorna: resultados versionados y trazables a escuela
+**Flujo de datos de mecanica-social-escuela → mecanica-social-ia**
+(**objetivo no implementado**; contrato provisional INT-001):
+
+1. Escuela aporta necesidad / textos de solicitud según contrato acordado
+2. IA asiste (p. ej. extracción estructurada) solo con datos autorizados o sintéticos
+3. Resultado versionado + **revisión humana** antes de uso en Escuela
+4. No existe API productiva documentada aún — ver `contratos/INT-001-escuela.md`
 
 **Restricciones críticas**:
 - Nunca acceder a datos personales de estudiantes sin autorización
@@ -139,11 +175,23 @@ Cambios en archivos críticos → Siempre (LICENSE, GOVERNANCE, etc.) Nuevo prom
 ## Próximos Pasos
 
 1. ✅ **Licencia definida** (LICENSE.md)
+<<<<<<< HEAD
 2. ✅ **Responsables asignados** (@LeodanZapata) — segundo maintainer / Teams pendiente a propósito (PEND-003)
 3. ✅ **Primer prompt ejemplo** (`prompts/formulario-intake-v1.0.0.yaml`; estado `prueba`, alcance no operativo; P0)
 4. ✅ **P1 — MVP evaluación ejecutable** (`evaluations/harness.py` offline, suite intake, CI smoke; ver `PRACTICO.md` y ADR-001)
 5. ⏳ **Integraciones** INT-001 / INT-002: inventario en `integraciones.md`; confirmación y vendor **bloqueados a propósito** (ver `pendientes-intencionales.md`)
 6. ⏳ **CI job model** (PEND-004; secrets de org, no forks) — smoke offline ya existe
+=======
+2. ✅ **Responsables asignados** (@LeodanZapata)
+3. ✅ **Primer prompt ejemplo en prueba** (formulario-intake-v1.0.0.yaml; riesgo medio)
+4. ✅ **Harness offline MVP** (evaluations/harness.py + suite intake)
+5. ✅ **Modo model del harness** (secretos por env; ADR-002) — vendor productivo aún no autorizado
+6. ✅ **Contrato provisional INT-001** (`docs/arquitectura/contratos/INT-001-escuela.md`) — falta confirmación Escuela
+7. ✅ **Model-card de evaluación** + **roles de revisión** documentados
+8. ⏳ **Autorizar proveedor productivo** (INT-002 + registro de decisión)
+9. ⏳ **Validar INT-001** con responsables de mecanica-social-escuela
+10. ⏳ **Segundo maintainer / teams** para four-eyes en CODEOWNERS
+>>>>>>> origin/main
 
 ---
 

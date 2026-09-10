@@ -1,0 +1,13 @@
+# Ejemplo de configuración no sensible del harness.
+# Copiar a config.local.yaml si se desea; no versionar secretos.
+# Credenciales: solo variables de entorno (ver infra/secretos-y-entorno.md).
+
+mode: offline   # offline | model
+# model_ref apunta a la carpeta bajo models/ (sin secretos)
+model_ref: models/openai-compatible-eval
+thresholds_override: {}
+seed: null
+max_cases: null
+# temperature y max_tokens se toman del config del modelo salvo override aquí
+# temperature: 0
+# max_tokens: 512

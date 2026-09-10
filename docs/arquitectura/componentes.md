@@ -43,7 +43,9 @@ Cada prompt relevante debe tener identificador y versión. No debe contener cred
 
 Documenta y configura los modelos utilizados: proveedor, versión, capacidades, limitaciones, configuración no sensible y referencias.
 
-No debe contener API keys, tokens, credenciales ni secretos.
+Inventario inicial: `models/openai-compatible-eval/` (estado **propuesto**, solo evaluación; ADR-002). Plantillas en `models/_plantillas/`.
+
+No debe contener API keys, tokens, credenciales ni secretos. Ver `infra/secretos-y-entorno.md`.
 
 ## 5. `agents/`
 
@@ -114,6 +116,8 @@ Prioridades: minimización, autorización, trazabilidad, protección y uso de da
 Contiene demostraciones sencillas. Los ejemplos no deben confundirse con configuraciones productivas.
 
 ## 11. `src/`
+
+Incluye `src/ms_ia/model_client.py` (cliente OpenAI-compatible para el harness modo `model`).
 
 Contiene código compartido: clientes de IA, utilidades, procesadores, integraciones y lógica común. Debe mantenerse separado de secretos y datos.
 
