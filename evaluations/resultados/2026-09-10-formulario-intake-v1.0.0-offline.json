@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "resultado_id": "eval-20260910-offline",
-  "fecha_utc": "2026-09-10T01:31:47Z",
+  "fecha_utc": "2026-09-10T04:25:24Z",
   "componente": {
     "tipo": "prompt",
     "id": "formulario-intake",
@@ -22,7 +22,7 @@
     "modelo_ref": null,
     "entorno": "local",
     "semilla": null,
-    "ejecutado_por": "mvp-practico",
+    "ejecutado_por": "harness-offline",
     "notas": "Corrida offline estructural. No llama a modelos. No constituye evidencia de exactitud de extracción ni aprobación operativa."
   },
   "metricas": [

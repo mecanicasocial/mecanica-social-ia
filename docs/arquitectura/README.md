@@ -21,6 +21,7 @@ Alcance de este README
 
 Componentes principales (visión rápida)
 - docs/arquitectura/: Documentación de arquitectura y decisiones (ADRs).
+- docs/arquitectura/pendientes-intencionales.md: Huecos dejados a propósito (vendor, INT-001/002, CODEOWNERS multi-persona, CI model).
 - prompts/: Registro versionado de prompts y metadatos.
 - models/: Configs, model-cards y referencias a pesos/servicios.
 - agents/: Implementaciones y manifiestos de agentes.
@@ -115,15 +116,16 @@ Checklist mínimo para cerrar la Issue #1
 - [ ] Riesgos técnicos iniciales identificados y mitigaciones propuestas (gobernanza.md)
 
 Próximos pasos (inmediatos)
-1. Añadir este README en docs/arquitectura/README.md (branch: issue-1/arquitectura-general).
-2. Crear PR (Draft si faltan diagramas) con el README y la estructura de carpetas vacía.
-3. Completar arquitectura-general.md con diagrama y ADRs y pedir revisión técnica + gobernanza.
-4. Implementar un experimento de ejemplo y un harness de evaluación ligero.
+1. ~~Añadir este README y estructura de carpetas.~~
+2. ~~Completar arquitectura-general.md y componentes.~~
+3. ~~P1: harness offline ejecutable + suite intake (ver PRACTICO.md y ADR-001).~~
+4. P2+: modo model (PEND-004), vendor (PEND-001), INT-001 (PEND-002).
 
 Referencias y notas
 - Registrar decisiones importantes en docs/arquitectura/adr/.
 - Mantener un CHANGELOG para cambios significativos de arquitectura.
 - Para cualquier integración con `mecanica-social-escuela`, definir contrato de datos y API en docs/arquitectura/integraciones.md.
+- Lo que queda pendiente **a propósito** (sin inventar vendor, contrato Escuela, segundo maintainer ni job CI model) está en [pendientes-intencionales.md](pendientes-intencionales.md).
 
 Contacto
 - Owner técnico (asignar en la Issue): @LeodanZapata

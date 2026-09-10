@@ -82,20 +82,17 @@ Las métricas deben ser apropiadas al objetivo; pueden incluir exactitud, precis
 evaluations/
 ├── README.md
 ├── harness.md              # contrato de evaluations/harness.py
+├── harness.py              # MVP offline (P1)
 ├── metricas.md
 ├── resultados.md
 ├── casos-prueba.md
 ├── _plantilla-resultado.json
-├── harness.py              # implementación de referencia (cuando exista)
 ├── casos-prueba/
-├── resultados/
-├── prompts/
-├── models/
-└── agents/
+│   └── intake-test-set.yaml
+└── resultados/
 ```
 
-Documentación normativa del marco: `evaluations/README.md`, `evaluations/harness.md`, `evaluations/metricas.md`, `evaluations/resultados.md`.
-
+Documentación normativa del marco: `evaluations/README.md`, `evaluations/harness.md`, `evaluations/metricas.md`, `evaluations/resultados.md`. Guía práctica: `PRACTICO.md`.
 ## 8. `infra/`
 
 Gestiona contenedores, scripts, automatizaciones, configuración de entornos, despliegues y observabilidad cuando corresponda. Los secretos se mantienen fuera del repositorio.

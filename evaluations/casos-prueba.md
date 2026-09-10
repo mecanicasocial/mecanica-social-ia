@@ -43,7 +43,7 @@ casos:
 
 ## Relación con el prompt de ejemplo
 
-`prompts/formulario-intake-v1.0.0.yaml` declara métricas y un ejemplo. La evidencia formal empieza con la suite `intake-test-set` y corridas en `evaluations/resultados/`. El modo offline **no** prueba el modelo ni otorga estado `aprobado`.
+`prompts/formulario-intake-v1.0.0.yaml` está en estado `prueba` (alcance `ejemplo-no-operativo`, riesgo `medio`). La suite canónica es `evaluations/casos-prueba/intake-test-set.yaml`. Las corridas (offline o model) se archivan en `evaluations/resultados/` y **no** bastan por sí solas para promoción operativa. La evidencia no se archiva bajo `prompts/`.
 
 ## Referencias
 

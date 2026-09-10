@@ -44,7 +44,11 @@ El harness no aprueba componentes.
 2. Desarrollar y documentar la contribución.
 3. Verificar coherencia con los principios institucionales.
 4. Actualizar documentación relacionada.
-5. Enviar Pull Request.
+5. Si el cambio toca prompts o evaluaciones, ejecutar el harness offline
+   (`PRACTICO.md`) y adjuntar evidencia cuando corresponda.
+6. Enviar Pull Request con la plantilla de gobernanza.
+
+Guía práctica del MVP: [PRACTICO.md](PRACTICO.md).
 
 ## Estándares mínimos
 

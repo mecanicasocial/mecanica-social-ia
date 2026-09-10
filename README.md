@@ -331,6 +331,8 @@ Documentos de gobernanza​
 - [Ética de IA](AI_ETHICS.md)
 - [Gobernanza de datos](DATA_GOVERNANCE.md)
 - [Seguridad](SECURITY.md)
+- [Guía práctica (P1 MVP evaluación)](PRACTICO.md)
+- [Arquitectura](docs/arquitectura/README.md)
 
 Contribuciones
 Las contribuciones deberán:

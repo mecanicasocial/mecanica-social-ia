@@ -10,6 +10,8 @@ proposito: |
   y extraer información estructurada de beneficiarios (casos sintéticos
   de prueba; no uso operativo hasta evaluación con modelo y aprobación).
 
+alcance: ejemplo-no-operativo
+
 area_responsable: "Formación Institucional"
 personas_afectadas: ["Beneficiarios", "Coordinadores de programas"]
 nivel_riesgo: medio
@@ -81,6 +83,7 @@ evaluacion:
     - tipo: coherencia_estructura
       objetivo: "100%"
       metodo: JSON válido y campos requeridos en todas las respuestas
+  evidencia_formal: offline-estructural  # no basta para promoción operativa
   criterios_aceptacion:
     - "Todos los campos requeridos presentes"
     - "No hay respuestas vacías cuando info disponible"

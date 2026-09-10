@@ -98,7 +98,7 @@ La evaluación humana debe registrar revisor (rol), fecha, guía de rubrica y de
 
 ## 5. Métricas ligadas al ejemplo `formulario-intake`
 
-El prompt documenta:
+El prompt de ejemplo (`estado: prueba`, `nivel_riesgo: medio`, alcance no operativo) documenta:
 
 | Métrica declarada | Interpretación en este catálogo | Condición para tomarla en serio |
 |---|---|---|

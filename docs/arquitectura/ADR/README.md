@@ -22,8 +22,14 @@ ADR-NNN-titulo-corto.md
 Ejemplo:
 
 ```text
-ADR-001-arquitectura-inicial.md
+ADR-001-arquitectura-inicial-y-mvp-evaluacion.md
 ```
+
+## Índice
+
+| ADR | Título | Estado |
+|---|---|---|
+| [ADR-001](ADR-001-arquitectura-inicial-y-mvp-evaluacion.md) | Arquitectura inicial de carpetas y MVP de evaluación offline | Aceptado |
 
 ## Estados
 

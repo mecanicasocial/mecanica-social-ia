@@ -17,6 +17,7 @@ El harness **mide**; la gobernanza **decide**.
 | `casos-prueba/intake-test-set.yaml` | Suite sintética v0.1.0 |
 | `resultados/` | Corridas archivadas |
 | `_plantilla-resultado.json` | Plantilla (no es evidencia) |
+| CI smoke offline | `.github/workflows/eval-offline.yml` |
 | Modo `replay` | Pendiente |
 | Suites de sesgo / 100+ casos | No existen aún |
 
@@ -72,12 +73,47 @@ evaluations/
     └── YYYY-MM-DD-<id>-v<ver>-{offline|model}.json
 ```
 
+## Documentos de diseño
+
+| Documento | Contenido |
+|---|---|
+| [harness.md](harness.md) | Contrato de diseño (modos, entradas, límites) |
+| [metricas.md](metricas.md) | Catálogo de métricas y umbrales orientativos |
+| [resultados.md](resultados.md) | Esquema y gobernanza de resultados |
+| [casos-prueba.md](casos-prueba.md) | Norma para suites sintéticas |
+| [_plantilla-resultado.json](_plantilla-resultado.json) | Plantilla de esquema (no es corrida real) |
+
+## Flujo resumido
+
+```text
+Componente + suite sintética
+        ↓
+Harness (offline o model)
+        ↓
+Resultado en evaluations/resultados/
+        ↓
+Revisión humana / gobernanza
+        ↓
+Estado del componente (prueba, aprobado, …)
+```
+
+## Relación con otros directorios
+
+| Ruta | Relación |
+|---|---|
+| `prompts/` | Metadatos y ejemplos; no archiva evidencia formal |
+| `experiments/` | Exploración; no sustituye evaluación formal |
+| `models/` | Slot de evaluación y model-cards |
+| `PRACTICO.md` | Guía rápida del MVP |
+| `DATA_GOVERNANCE.md` / `GOVERNANCE.md` | Datos y decisión institucional |
+
 ## Referencias
 
 - `docs/arquitectura/ADR/ADR-001-arquitectura-inicial-y-mvp-evaluacion.md`
 - `docs/arquitectura/ADR/ADR-002-modo-model-secretos-y-proveedor.md`
 - `models/openai-compatible-eval/model-card.md`
 - `infra/secretos-y-entorno.md`
+- `PRACTICO.md`
 - `GOVERNANCE.md`
 - `DATA_GOVERNANCE.md`
 - `SECURITY.md`

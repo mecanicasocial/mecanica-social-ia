@@ -38,6 +38,13 @@ que lo justifique.
 Las credenciales, API keys, tokens y secretos **nunca** deben
 almacenarse en esta carpeta. Ver `infra/secretos-y-entorno.md` y ADR-002.
 
+## Estado actual (intencional)
+
+No hay **vendor productivo** adoptado en este directorio. La validación de
+**INT-002** y la adopción de un proveedor quedan bloqueadas a propósito
+hasta **autorización institucional**. Detalle:
+`docs/arquitectura/pendientes-intencionales.md` (PEND-001).
+
 ## Evaluación
 
 Todo modelo destinado a un uso relevante deberá contar con evidencia

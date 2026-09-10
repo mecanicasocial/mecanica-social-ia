@@ -30,11 +30,15 @@ Se necesita un primer paso **práctico y reversible** que:
    `evaluations/harness.md`.
 3. Las suites de casos viven en `evaluations/casos-prueba/`.
 4. Las corridas se archivan en `evaluations/resultados/`.
-5. El MVP implementa solo modo **offline** (validación estructural).
+5. El MVP de este ADR implementa modo **offline** (validación estructural).
+   El modo **model** se documenta en ADR-002 y no sustituye aprobación operativa.
 6. Todo resultado offline declara `apto_para_aprobacion_operativa: false`.
 7. Los estados de componente en español preferidos son:
    `borrador`, `prueba`, `aprobado`, `restringido`, `obsoleto`, `suspendido`, `retirado`.
 8. No se versionan PII reales ni secretos; las suites son sintéticas.
+9. CI smoke offline (`.github/workflows/eval-offline.yml`) no usa secretos ni
+   llama a proveedores. Un job CI de modo **model** sigue pendiente intencional
+   (PEND-004: secrets de org, no forks).
 
 ## Alternativas consideradas
 
@@ -64,5 +68,7 @@ Se necesita un primer paso **práctico y reversible** que:
 
 - `docs/arquitectura/arquitectura-general.md`
 - `evaluations/harness.md`
+- `PRACTICO.md`
 - `GOVERNANCE.md`
 - `DATA_GOVERNANCE.md`
+- `docs/arquitectura/pendientes-intencionales.md`

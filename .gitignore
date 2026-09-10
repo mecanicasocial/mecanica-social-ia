@@ -1,6 +1,12 @@
 # configs locales
 evaluations/config.local.yaml
 **/config.local.yaml
+
+# Python
 __pycache__/
-*.pyc
+*.py[cod]
+.Python
 .venv/
+venv/
+*.egg-info/
+.pytest_cache/

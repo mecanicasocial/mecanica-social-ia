@@ -71,6 +71,8 @@ El slot actual **no** es proveedor productivo autorizado.
 | P2 | Segundo maintainer / teams para four-eyes real en CODEOWNERS |
 | P3 | Agentes con permisos mínimos y pruebas de abuso |
 
+Detalle de huecos intencionales: `docs/arquitectura/pendientes-intencionales.md`.
+
 ## Reglas de oro
 
 - No inventar inventarios (agentes, 100+ casos, aprobaciones).

@@ -31,6 +31,8 @@ resultados / servicios
 
 La implementación concreta deberá definir interfaz, entradas, salidas, autenticación, autorización, errores, versionamiento, datos y responsabilidades.
 
+Existe un contrato **provisional** en `contratos/INT-001-escuela.md` (schema/muestra sintéticos). La confirmación **bilateral** con Escuela sigue pendiente (PEND-002); no inventar API productiva ni elevar el estado a Validada/Operativa sin esa confirmación. Ver `pendientes-intencionales.md`.
+
 No debe asumirse que ambos repositorios deben compartir código directamente.
 
 ## 4. Proveedores de modelos
@@ -49,6 +51,8 @@ Toda integración con un proveedor externo debería documentar:
 - evaluación correspondiente.
 
 Las credenciales se mantienen fuera del repositorio.
+
+La adopción de un **vendor productivo** y la validación de **INT-002** requieren autorización institucional (PEND-001). No hay proveedor productivo versionado en `models/` hasta ese desbloqueo; ver `pendientes-intencionales.md`.
 
 ## 5. Contrato de integración
 
@@ -114,6 +118,11 @@ Schema/muestra sintéticos INT-001:
 
 - `data/schemas/int-001-solicitud-formacion.schema.json`
 - `data/samples/int-001-solicitud-formacion.sample.json`
+
+### Notas de bloqueo intencional
+
+- **INT-001** está en estado **Provisional** (contrato y schema sintéticos documentados) hasta **confirmación bilateral** con Escuela. No inventar API productiva ni campos no acordados. Ver `pendientes-intencionales.md` (PEND-002).
+- **INT-002** permanece en **Propuesto** hasta **autorización institucional** de vendor productivo, evaluación y validación de la integración. Ver `pendientes-intencionales.md` (PEND-001).
 
 ## 10. Cambios
 
