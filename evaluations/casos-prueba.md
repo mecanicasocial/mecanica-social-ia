@@ -43,7 +43,7 @@ casos:
 
 ## Relación con el prompt de ejemplo
 
-`prompts/formulario-intake-v1.0.0.yaml` declara métricas y un único ejemplo. Eso **no** sustituye una suite en `evaluations/casos-prueba/`. Hasta existir suite y corrida con alcance declarado, no hay evidencia formal de evaluación en este directorio.
+`prompts/formulario-intake-v1.0.0.yaml` está en estado `prueba` (alcance `ejemplo-no-operativo`, riesgo `medio`) y declara métricas con un único ejemplo embebido. Eso **no** sustituye una suite en `evaluations/casos-prueba/`. Hasta existir suite y corrida con alcance declarado, no hay evidencia formal de evaluación en este directorio. La evidencia no se archiva bajo `prompts/`.
 
 ## Referencias
 

@@ -1,24 +1,31 @@
 id: formulario-intake
 version: 1.0.0
-estado: aprobado
+estado: prueba
 autor: nombre
 fecha_creacion: 2026-09-06
-fecha_revision: 2026-09-06
+fecha_revision: 2026-09-10
 
 proposito: |
   Procesar solicitudes de participación en programas de formación
   y extraer información estructurada de beneficiarios.
 
+# Ejemplo de metadatos y formato. NO es un componente operativo ni
+# autorizado para uso institucional. Falta suite formal en
+# evaluations/casos-prueba/ y corrida con alcance declarado.
+alcance: ejemplo-no-operativo
+
 area_responsable: "Formación Institucional"
 personas_afectadas: ["Beneficiarios", "Coordinadores de programas"]
-nivel_riesgo: bajo
+# PII de beneficiarios (nombre, email, teléfono) → riesgo medio mínimo
+# según DATA_GOVERNANCE.md y gobernanza-rapida.md.
+nivel_riesgo: medio
 
 datos_permitidos:
   - Nombre
   - Email
   - Teléfono
   - Motivación
-  
+
 datos_prohibidos:
   - Datos bancarios
   - Información de vulnerabilidad sensible
@@ -31,20 +38,22 @@ fuentes_autorizadas:
 limitaciones_conocidas:
   - No valida direcciones fuera de Chile
   - Sensible a caracteres especiales
-  
+  - Sin evidencia formal de evaluación en evaluations/
+  - Un solo ejemplo embebido; no sustituye suite de casos
+
 prompt_text: |
   Eres un asistente que procesa solicitudes de capacitación.
-  
+
   Tu tarea:
   1. Extrae: nombre, email, teléfono, razón de interés
   2. Estructura la salida en JSON
   3. Marca campos faltantes con "NO_PROPORCIONADO"
-  
+
   NUNCA:
   - Inventes información
   - Edites el formato de email/teléfono
   - Hables de dinero o costos
-  
+
   Input: {% verbatim %}{{ texto_formulario }}{% endverbatim %}
   Output format:
   {
@@ -75,21 +84,31 @@ evaluacion:
     - tipo: coherencia_estructura
       objetivo: 100%
       metodo: JSON válido en todas las respuestas
-      
+
   criterios_aceptacion:
     - "Todos los campos requeridos presentes"
     - "No hay respuestas vacías cuando info disponible"
     - "Formato JSON correcto"
+  # La evidencia formal de evaluación solo se archiva bajo evaluations/.
+  evidencia_formal: pendiente
 
-supervison_humana:
+supervision_humana:
   requerida: sí
-  forma: "Revisor manual valida 10% de respuestas"
-  frecuencia: "Semanal o si error > 5%"
+  forma: "Revisor manual valida al menos 30% de respuestas y 100% de casos con PII incompleta o ambigua"
+  frecuencia: "Diaria en piloto; semanal en régimen, o si error > 3%"
   responsable: "Coordinador de Formación"
 
 revisiones:
   - fecha: 2026-09-06
     version: 1.0.0
-    cambio: "Aprobada versión inicial"
+    cambio: "Versión inicial de ejemplo (metadatos y formato)"
     revisado_por: "Equipo Técnico"
-    aprobado_por: "Responsable Gobernanza"
+    aprobado_por: "N/A — sin aprobación operativa"
+  - fecha: 2026-09-10
+    version: 1.0.0
+    cambio: |
+      P0 auditoría: estado aprobado→prueba; riesgo bajo→medio;
+      alcance ejemplo-no-operativo; supervisión alineada a PII;
+      evidencia formal pendiente en evaluations/.
+    revisado_por: "Auditoría arquitectura"
+    aprobado_por: "N/A — sin aprobación operativa"

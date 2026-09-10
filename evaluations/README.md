@@ -110,6 +110,8 @@ El harness **mide**; la gobernanza **decide**.
 | Suites YAML en `casos-prueba/` | Pendientes (norma en `casos-prueba.md`) |
 | Corridas reales en `resultados/` | Ninguna archivada (sin inventar evidencia) |
 | Plantilla de resultado | Disponible en `_plantilla-resultado.json` |
+| Harness espurio bajo `prompts/.evaluations/` | Eliminado en P0; canónico solo aquí |
+| Prompt ejemplo `formulario-intake` | `prueba` / no operativo; sin evidencia formal aún |
 
 ## Referencias
 
