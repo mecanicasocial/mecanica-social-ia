@@ -1,0 +1,336 @@
+{
+  "schema_version": "1.0.0",
+  "resultado_id": "eval-20260915-offline",
+  "fecha_utc": "2026-09-15T16:25:54Z",
+  "componente": {
+    "tipo": "prompt",
+    "id": "formulario-intake",
+    "version": "1.0.0",
+    "ruta": "prompts/formulario-intake-v1.0.0.yaml",
+    "nivel_riesgo_declarado": "medio",
+    "estado_declarado": "prueba"
+  },
+  "suite": {
+    "id": "intake-test-set",
+    "version": "0.1.0",
+    "ruta": "evaluations/casos-prueba/intake-test-set.yaml",
+    "n_casos": 6
+  },
+  "ejecucion": {
+    "modo": "offline",
+    "harness_ref": "evaluations/harness.md",
+    "modelo_ref": null,
+    "entorno": "local",
+    "semilla": null,
+    "ejecutado_por": "harness-offline",
+    "notas": "Corrida offline estructural. No llama a modelos. No constituye evidencia de exactitud de extracción ni aprobación operativa."
+  },
+  "metricas": [
+    {
+      "id": "esquema_componente_valido",
+      "nombre": "Esquema de componente válido",
+      "valor": true,
+      "unidad": "booleano",
+      "umbral": true,
+      "umbral_cumplido": true,
+      "metodo": "validación offline de campos mínimos",
+      "n_casos": 0,
+      "limitaciones": "No evalúa calidad del modelo"
+    },
+    {
+      "id": "json_valido",
+      "nombre": "Expected de casos es JSON objeto válido",
+      "valor": 100.0,
+      "unidad": "porcentaje",
+      "umbral": 100,
+      "umbral_cumplido": true,
+      "metodo": "parseo de expected en suite",
+      "n_casos": 6,
+      "limitaciones": "Valida fixtures, no salidas del modelo"
+    },
+    {
+      "id": "campos_requeridos_presentes",
+      "nombre": "Campos requeridos en expected",
+      "valor": 100.0,
+      "unidad": "porcentaje",
+      "umbral": 100,
+      "umbral_cumplido": true,
+      "metodo": "presencia de claves en expected",
+      "n_casos": 6,
+      "limitaciones": "No compara con output de modelo"
+    }
+  ],
+  "resumen": {
+    "n_casos": 6,
+    "n_pasados": 6,
+    "n_fallidos": 0,
+    "tasa_exito_primaria": 100.0,
+    "umbrales_obligatorios_ok": true,
+    "alcance": "estructural",
+    "apto_para_aprobacion_operativa": false
+  },
+  "validacion_estructural": {
+    "componente": [
+      {
+        "check": "campo_componente:id",
+        "ok": true,
+        "detalle": null
+      },
+      {
+        "check": "campo_componente:version",
+        "ok": true,
+        "detalle": null
+      },
+      {
+        "check": "campo_componente:estado",
+        "ok": true,
+        "detalle": null
+      },
+      {
+        "check": "campo_componente:proposito",
+        "ok": true,
+        "detalle": null
+      },
+      {
+        "check": "campo_componente:nivel_riesgo",
+        "ok": true,
+        "detalle": null
+      },
+      {
+        "check": "campo_componente:datos_prohibidos",
+        "ok": true,
+        "detalle": null
+      },
+      {
+        "check": "campo_componente:prompt_text",
+        "ok": true,
+        "detalle": null
+      },
+      {
+        "check": "nivel_riesgo_valido",
+        "ok": true,
+        "detalle": null
+      },
+      {
+        "check": "estado_valido",
+        "ok": true,
+        "detalle": null
+      },
+      {
+        "check": "ejemplos_lista",
+        "ok": true,
+        "detalle": null
+      },
+      {
+        "check": "ejemplo_0_estructura",
+        "ok": true,
+        "detalle": null
+      },
+      {
+        "check": "ejemplo_0_campos",
+        "ok": true,
+        "detalle": null
+      }
+    ],
+    "suite": [
+      {
+        "check": "campo_suite:id",
+        "ok": true,
+        "detalle": null
+      },
+      {
+        "check": "campo_suite:version",
+        "ok": true,
+        "detalle": null
+      },
+      {
+        "check": "campo_suite:componente_objetivo",
+        "ok": true,
+        "detalle": null
+      },
+      {
+        "check": "campo_suite:casos",
+        "ok": true,
+        "detalle": null
+      },
+      {
+        "check": "datos_clasificacion",
+        "ok": true,
+        "detalle": null
+      },
+      {
+        "check": "casos_no_vacios",
+        "ok": true,
+        "detalle": null
+      }
+    ]
+  },
+  "casos_detalle": [
+    {
+      "caso_id": "caso-001",
+      "ok": true,
+      "tags": [
+        "feliz",
+        "json"
+      ],
+      "checks": [
+        {
+          "check": "id_unico",
+          "ok": true
+        },
+        {
+          "check": "input_presente",
+          "ok": true
+        },
+        {
+          "check": "expected_json",
+          "ok": true
+        },
+        {
+          "check": "campos_requeridos",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "caso_id": "caso-002",
+      "ok": true,
+      "tags": [
+        "edge",
+        "faltante"
+      ],
+      "checks": [
+        {
+          "check": "id_unico",
+          "ok": true
+        },
+        {
+          "check": "input_presente",
+          "ok": true
+        },
+        {
+          "check": "expected_json",
+          "ok": true
+        },
+        {
+          "check": "campos_requeridos",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "caso_id": "caso-003",
+      "ok": true,
+      "tags": [
+        "edge",
+        "faltante"
+      ],
+      "checks": [
+        {
+          "check": "id_unico",
+          "ok": true
+        },
+        {
+          "check": "input_presente",
+          "ok": true
+        },
+        {
+          "check": "expected_json",
+          "ok": true
+        },
+        {
+          "check": "campos_requeridos",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "caso_id": "caso-004",
+      "ok": true,
+      "tags": [
+        "edge",
+        "incompleto"
+      ],
+      "checks": [
+        {
+          "check": "id_unico",
+          "ok": true
+        },
+        {
+          "check": "input_presente",
+          "ok": true
+        },
+        {
+          "check": "expected_json",
+          "ok": true
+        },
+        {
+          "check": "campos_requeridos",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "caso_id": "caso-005",
+      "ok": true,
+      "tags": [
+        "feliz",
+        "unicode"
+      ],
+      "checks": [
+        {
+          "check": "id_unico",
+          "ok": true
+        },
+        {
+          "check": "input_presente",
+          "ok": true
+        },
+        {
+          "check": "expected_json",
+          "ok": true
+        },
+        {
+          "check": "campos_requeridos",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "caso_id": "caso-006",
+      "ok": true,
+      "tags": [
+        "adversario",
+        "injection"
+      ],
+      "checks": [
+        {
+          "check": "id_unico",
+          "ok": true
+        },
+        {
+          "check": "input_presente",
+          "ok": true
+        },
+        {
+          "check": "expected_json",
+          "ok": true
+        },
+        {
+          "check": "campos_requeridos",
+          "ok": true
+        }
+      ]
+    }
+  ],
+  "limitaciones": [
+    "Modo offline: no evalúa el comportamiento del modelo.",
+    "Los expected son fixtures sintéticas, no predicciones.",
+    "apto_para_aprobacion_operativa es siempre false en este modo."
+  ],
+  "decision_institucional": {
+    "estado": "no_aplicable",
+    "referencia": null,
+    "notas": "La decisión vive en gobernanza (PR/registro); no la inventa el harness."
+  }
+}
