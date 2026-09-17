@@ -1,13 +1,14 @@
-from fastapi import FastAPI, HTTPException, status
+from fastapi import FastAPI, HTTPException, status, Depends
 from pydantic import BaseModel, Field
 from typing import Optional, Literal
 import yaml
+from app.dependencies import verificar_api_key_escuela
 
 # 1. Inicialización de la Aplicación
 app = FastAPI(
     title="Mecánica Social IA - API REST",
-    description="Servicio en runtime alineado estrictamente al Contrato INT-001.",
-    version="1.1.0"
+    description="Servicio en runtime alineado estrictamente al Contrato INT-001 y protegido con API Key.",
+    version="1.2.0"
 )
 
 # 2. ESQUEMA DE ENTRADA REAL (Sección 3 del Contrato INT-001)
@@ -39,33 +40,35 @@ class ExtraccionFormacionOutput(BaseModel):
 # 4. Endpoints de Monitoreo
 @app.get("/health", status_code=status.HTTP_200_OK, tags=["Monitoreo"])
 async def health_check():
-    return {"status": "healthy", "version": "1.1.0"}
+    return {"status": "healthy", "version": "1.2.0"}
 
 @app.get("/ready", status_code=status.HTTP_200_OK, tags=["Monitoreo"])
 async def ready_check():
     return {"status": "ready"}
 
-# 5. Endpoint de Negocio Corregido y Alineado con carga de Directrices
+# 5. Endpoint de Negocio Protegido (Inyección de verificar_api_key_escuela)
 @app.post(
     "/v1/intake", 
     status_code=status.HTTP_201_CREATED, 
     response_model=ExtraccionFormacionOutput,
     tags=["Integraciones"]
 )
-async def process_intake(payload: SolicitudFormacionInput):
+async def process_intake(
+    payload: SolicitudFormacionInput,
+    _token: str = Depends(verificar_api_key_escuela)  # Guardia de Seguridad Activo
+):
     """
     Recibe el bloque de texto libre de Escuela (Sección 3).
-    Carga de forma dinámica las directrices del componente v1.0.0 e invoca la extracción asistida.
+    Requiere autenticación obligatoria X-API-Key en las cabeceras HTTP.
     """
     try:
         # Auditoría Operacional: Cargamos el Prompt seguro v1.0.0 congelado en el repositorio
         with open("prompts/formulario-intake-v1.0.0.yaml", "r", encoding="utf-8") as f:
             componente_prompt = yaml.safe_load(f)
             
-        # Obtenemos las instrucciones del sistema blindadas de la fase anterior
         system_instructions = componente_prompt.get("prompt_text", "")
         
-        # Pipeline de Procesamiento (Estructura base para la conexión con el motor INT-002)
+        # Pipeline de Procesamiento Sintético Asistido
         resultado_ia_asistido = {
             "nombre": "MOCK_EXTRAIDO_DESDE_IA",
             "email": "NO_PROPORCIONADO",
