@@ -129,7 +129,42 @@ No se documentan URLs ni credenciales reales aquí.
 4. Cualquier campo o endpoint real debe confirmarse en Issue conjunta y
    actualizar este documento + fila INT-001 en `integraciones.md`.
 
-## 9. Criterios para pasar de provisional → validado
+## 9. Estado de validación y trazabilidad
+INT-001 permanece en estado **Provisional / propuesto**.
+
+La revisión o prueba técnica de artefactos de IA no equivale por sí sola a
+validación bilateral, aprobación institucional ni autorización operativa.
+
+| Etapa | Estado actual | Evidencia / pendiente |
+|---|---|---|
+| Contrato documentado | Cumplido | Este documento `INT-001-escuela.md` |
+| Schema y muestra sintética | Cumplido | `data/schemas/int-001-solicitud-formacion.schema.json` y muestra asociada |
+| Evaluación técnica sintética | Parcial | Harness y casos de prueba disponibles; no constituyen aprobación operativa |
+| Confirmación responsable IA | Provisional | `@LeodanZapata` |
+| Confirmación responsable Escuela | Pendiente | Responsable aún por confirmar |
+| Confirmación bilateral Escuela + IA | Pendiente | Requiere evidencia escrita |
+| Schema de intercambio acordado | Pendiente | El schema actual es provisional y sintético |
+| Autenticación / autorización | Pendiente | Mecanismo por definir con Escuela |
+| Clasificación y retención de datos | Pendiente | Debe acordarse antes de usar datos reales |
+| Revisión de seguridad y datos | Pendiente | Requerida antes de validación |
+| Aprobación institucional | Pendiente | Separada de la revisión técnica |
+| Estado operativo | No autorizado | No existe API productiva ni autorización de intercambio real |
+
+Secuencia de referencia:
+
+```text
+PROVISIONAL
+    ↓
+REVISADO_TECNICAMENTE
+    ↓
+CONFIRMADO_BILATERALMENTE
+    ↓
+APROBADO_INSTITUCIONALMENTE
+    ↓
+OPERATIVO
+```
+
+## 10. Criterios para pasar de provisional → validado
 
 - [ ] Confirmación escrita de responsables Escuela + IA
 - [ ] Schema de entrada/salida acordado (sin campos inventados)
@@ -139,7 +174,7 @@ No se documentan URLs ni credenciales reales aquí.
 - [ ] Revisión de seguridad y datos
 - [ ] ADR de integración si el flujo se vuelve estructural
 
-## 10. Referencias
+## 11. Referencias
 
 - `docs/arquitectura/integraciones.md`
 - `DATA_GOVERNANCE.md`
