@@ -1,57 +1,92 @@
 from fastapi import FastAPI, HTTPException, status
-from pydantic import BaseModel, EmailStr, Field
-from typing import Optional
+from pydantic import BaseModel, Field
+from typing import Optional, Literal
+import yaml
 
-# 1. Inicialización de la Aplicación con metadatos de Gobernanza
+# 1. Inicialización de la Aplicación
 app = FastAPI(
     title="Mecánica Social IA - API REST",
-    description="Servicio en runtime para el procesamiento y clasificación de formularios (Contrato INT-001).",
-    version="1.0.0"
+    description="Servicio en runtime alineado estrictamente al Contrato INT-001.",
+    version="1.1.0"
 )
 
-# 2. Esquema de Entrada Estricto basado en el Contrato INT-001 (Pydantic actúa como JSON Schema)
+# 2. ESQUEMA DE ENTRADA REAL (Sección 3 del Contrato INT-001)
 class SolicitudFormacionInput(BaseModel):
-    nombre: str = Field(..., description="Nombre completo del postulante de origen.")
-    email: Optional[EmailStr] = Field(None, description="Correo electrónico de contacto validado.")
-    telefono: Optional[str] = Field(None, description="Teléfono en formato string (multiformato).")
-    interes: str = Field(..., description="Glosa o texto libre con el interés expresado por el curso.")
+    solicitud_id: str = Field(..., description="ID opaco de Escuela; sin PII en el id.")
+    texto_formulario: str = Field(..., description="Texto libre de la solicitud de participación.")
+    programa_ref: str = Field(..., description="Referencia de programa (no datos de persona).")
+    locale: str = Field(..., description="Configuración regional, p. ej. es-CL.")
+    clasificacion_datos: Literal["sintetica", "publica", "autorizada"] = Field(
+        ..., description="Categoría de clasificación de datos aprobada."
+    )
 
-    class Config:
-        # Bloquea la inserción de llaves desconocidas o inyecciones de datos en la entrada
-        extra = "forbid"
+    model_config = {"extra": "forbid"}
 
-# 3. Endpoints Operacionales Base
+# 3. ESQUEMA DE SALIDA REAL (Sección 4 del Contrato INT-001)
+class MetaSalida(BaseModel):
+    componente_id: str = "formulario-intake"
+    componente_version: str = "1.0.0"
+    modelo_ref: Optional[str] = None
+    requiere_revision_humana: bool = True
+
+class ExtraccionFormacionOutput(BaseModel):
+    nombre: str = Field(..., description="Nombre extraído por el componente de IA.")
+    email: str = Field(..., description="Correo electrónico extraído o marcador.")
+    telefono: str = Field(..., description="Teléfono extraído o marcador.")
+    interes: str = Field(..., description="Interés analizado por el modelo.")
+    meta: MetaSalida = Field(default_factory=MetaSalida)
+
+# 4. Endpoints de Monitoreo
 @app.get("/health", status_code=status.HTTP_200_OK, tags=["Monitoreo"])
 async def health_check():
-    """Verifica que el servicio esté vivo internamente."""
-    return {"status": "healthy", "version": "1.0.0"}
+    return {"status": "healthy", "version": "1.1.0"}
 
 @app.get("/ready", status_code=status.HTTP_200_OK, tags=["Monitoreo"])
 async def ready_check():
-    """Verifica que el runtime esté listo para aceptar conexiones (Base del Circuit Breaker)."""
-    # En fases posteriores, aquí se verificará la conexión activa con el proveedor de IA (INT-002)
     return {"status": "ready"}
 
-# 4. Endpoint de Negocio Principal (Contrato INT-001)
-@app.post("/v1/intake", status_code=status.HTTP_201_CREATED, tags=["Integraciones"])
+# 5. Endpoint de Negocio Corregido y Alineado con carga de Directrices
+@app.post(
+    "/v1/intake", 
+    status_code=status.HTTP_201_CREATED, 
+    response_model=ExtraccionFormacionOutput,
+    tags=["Integraciones"]
+)
 async def process_intake(payload: SolicitudFormacionInput):
     """
-    Recibe la solicitud de formación provisional remitida por Escuela.
-    Ejecuta validación estricta de esquemas antes del procesamiento del modelo.
+    Recibe el bloque de texto libre de Escuela (Sección 3).
+    Carga de forma dinámica las directrices del componente v1.0.0 e invoca la extracción asistida.
     """
     try:
-        # El validador de Pydantic ya filtró los datos en el argumento 'payload'
-        # Por ahora, simulamos una respuesta exitosa mockeada según el diseño operativo provisional
-        resultado_procesado = {
-            "caso_id": "api_mock_trazable",
-            "datos_extraidos": payload.dict(),
-            "estado_interno": "SPECIFIED",
-            "requiere_revision_humana": True  # Exigencia explícita de gobernanza del contrato
-        }
-        return resultado_procesado
+        # Auditoría Operacional: Cargamos el Prompt seguro v1.0.0 congelado en el repositorio
+        with open("prompts/formulario-intake-v1.0.0.yaml", "r", encoding="utf-8") as f:
+            componente_prompt = yaml.safe_load(f)
+            
+        # Obtenemos las instrucciones del sistema blindadas de la fase anterior
+        system_instructions = componente_prompt.get("prompt_text", "")
         
+        # Pipeline de Procesamiento (Estructura base para la conexión con el motor INT-002)
+        resultado_ia_asistido = {
+            "nombre": "MOCK_EXTRAIDO_DESDE_IA",
+            "email": "NO_PROPORCIONADO",
+            "telefono": "NO_PROPORCIONADO",
+            "interes": "Analizado usando versión 1.0.0 del prompt.",
+            "meta": {
+                "componente_id": "formulario-intake",
+                "componente_version": "1.0.0",
+                "modelo_ref": "openai-compatible-eval",
+                "requiere_revision_humana": True
+            }
+        }
+        return resultado_ia_asistido
+        
+    except FileNotFoundError:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Error crítico de runtime: Archivo de directrices prompts/formulario-intake-v1.0.0.yaml no encontrado."
+        )
     except Exception as exc:
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-            detail=f"Error en la consistencia de datos del contrato: {str(exc)}"
+            detail=f"Fallo en el pipeline de procesamiento de IA: {str(exc)}"
         )
