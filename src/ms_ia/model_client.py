@@ -180,3 +180,18 @@ def build_client_from_model_config(model_cfg: dict[str, Any]) -> OpenAICompatibl
         api_key_header=header,
         api_key_prefix=prefix,
     )
+def validar_contrato_estricto(objeto_salida: dict, campos_requeridos: list) -> bool:
+    """Comprueba que estén todos los campos requeridos y NINGUNO extra."""
+    if not isinstance(objeto_salida, dict):
+        return False
+    
+    # 1. Comprobar que no falte ninguna de las llaves obligatorias
+    for campo in campos_requeridos:
+        if campo not in objeto_salida:
+            return False
+            
+    # 2. Comprobar que no existan llaves extras (Inyecciones de datos)
+    if len(objeto_salida.keys()) > len(campos_requeridos):
+        return False
+        
+    return True

@@ -411,9 +411,7 @@ def run_model_cases(
             checks.append({"check": "expected_json", "ok": True})
 
         try:
-            system_prompt = _render_prompt(prompt_text, user_input)
-            if "{{" in prompt_text and user_input not in system_prompt:
-                system_prompt = prompt_text
+            system_prompt = prompt_text
             completion = client.complete(
                 system_or_prompt=system_prompt,
                 user_input=user_input,
