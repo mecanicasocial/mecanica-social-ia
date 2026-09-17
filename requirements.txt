@@ -1,3 +1,8 @@
 # Dependencias mínimas del MVP de evaluación offline.
 # No incluye SDKs de proveedores de modelos.
 PyYAML>=6.0.1
+
+# Runtime e infraestructura de la API REST (Fase 3)
+fastapi>=0.110.0
+uvicorn>=0.28.0
+pydantic[email]>=2.6.0
