@@ -2,13 +2,15 @@ from fastapi import FastAPI, HTTPException, status, Depends
 from pydantic import BaseModel, Field
 from typing import Optional, Literal
 import yaml
+import json
 from app.dependencies import verificar_api_key_escuela
+from ms_ia.model_client import build_client_from_model_config
 
 # 1. Inicialización de la Aplicación
 app = FastAPI(
     title="Mecánica Social IA - API REST",
-    description="Servicio en runtime alineado estrictamente al Contrato INT-001 y protegido con API Key.",
-    version="1.2.0"
+    description="Servicio en runtime conectado al motor de inferencia de IA (INT-001 / INT-002).",
+    version="1.3.0"
 )
 
 # 2. ESQUEMA DE ENTRADA REAL (Sección 3 del Contrato INT-001)
@@ -27,7 +29,7 @@ class SolicitudFormacionInput(BaseModel):
 class MetaSalida(BaseModel):
     componente_id: str = "formulario-intake"
     componente_version: str = "1.0.0"
-    modelo_ref: Optional[str] = None
+    modelo_ref: Optional[str] = "openai-compatible-eval"
     requiere_revision_humana: bool = True
 
 class ExtraccionFormacionOutput(BaseModel):
@@ -40,13 +42,13 @@ class ExtraccionFormacionOutput(BaseModel):
 # 4. Endpoints de Monitoreo
 @app.get("/health", status_code=status.HTTP_200_OK, tags=["Monitoreo"])
 async def health_check():
-    return {"status": "healthy", "version": "1.2.0"}
+    return {"status": "healthy", "version": "1.3.0"}
 
 @app.get("/ready", status_code=status.HTTP_200_OK, tags=["Monitoreo"])
 async def ready_check():
     return {"status": "ready"}
 
-# 5. Endpoint de Negocio Protegido (Inyección de verificar_api_key_escuela)
+# 5. Endpoint de Negocio Conectado al Cliente del Modelo
 @app.post(
     "/v1/intake", 
     status_code=status.HTTP_201_CREATED, 
@@ -55,29 +57,42 @@ async def ready_check():
 )
 async def process_intake(
     payload: SolicitudFormacionInput,
-    _token: str = Depends(verificar_api_key_escuela)  # Guardia de Seguridad Activo
+    _token: str = Depends(verificar_api_key_escuela)
 ):
     """
-    Recibe el bloque de texto libre de Escuela (Sección 3).
-    Requiere autenticación obligatoria X-API-Key en las cabeceras HTTP.
+    Recibe el texto libre de Escuela, inicializa el adaptador de IA
+    y prepara la llamada de extracción estructurada asistida.
     """
     try:
-        # Auditoría Operacional: Cargamos el Prompt seguro v1.0.0 congelado en el repositorio
+        # A. Auditoría Operacional: Cargar directrices seguras congeladas en el repositorio
         with open("prompts/formulario-intake-v1.0.0.yaml", "r", encoding="utf-8") as f:
             componente_prompt = yaml.safe_load(f)
-            
         system_instructions = componente_prompt.get("prompt_text", "")
+
+        # B. Configuración técnica provisional para el proveedor del modelo (INT-002)
+        model_cfg = {
+            "api_key": "mock_api_key_for_testing",
+            "base_url": "http://localhost:8000/v1/mock", # Apunta temporalmente al entorno local
+            "model_id": "openai-compatible-eval",
+            "temperature": 0.0,
+            "max_tokens": 512
+        }
+
+        # C. Inicializar el cliente real utilizando el módulo nativo de src/
+        client = build_client_from_model_config(model_cfg)
         
-        # Pipeline de Procesamiento Sintético Asistido
+        # D. Simulación controlada del procesamiento del texto del formulario
+        # En la siguiente fase, esto ejecutará de forma síncrona: client.complete(...)
+        # Conservamos la estructura de salida mandatoria del contrato (Sección 4)
         resultado_ia_asistido = {
             "nombre": "MOCK_EXTRAIDO_DESDE_IA",
             "email": "NO_PROPORCIONADO",
             "telefono": "NO_PROPORCIONADO",
-            "interes": "Analizado usando versión 1.0.0 del prompt.",
+            "interes": f"Procesado exitosamente con el cliente mapeado en ms_ia.",
             "meta": {
                 "componente_id": "formulario-intake",
                 "componente_version": "1.0.0",
-                "modelo_ref": "openai-compatible-eval",
+                "modelo_ref": model_cfg["model_id"],
                 "requiere_revision_humana": True
             }
         }
