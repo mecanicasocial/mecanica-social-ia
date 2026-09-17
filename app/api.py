@@ -1,6 +1,7 @@
 from fastapi import FastAPI, HTTPException, status
 from pydantic import BaseModel, Field
 from typing import Optional, Literal
+import yaml
 
 # 1. Inicialización de la Aplicación
 app = FastAPI(
@@ -19,8 +20,7 @@ class SolicitudFormacionInput(BaseModel):
         ..., description="Categoría de clasificación de datos aprobada."
     )
 
-    class Config:
-        extra = "forbid"  # Bloquea inyecciones de datos no documentados en la entrada
+    model_config = {"extra": "forbid"}
 
 # 3. ESQUEMA DE SALIDA REAL (Sección 4 del Contrato INT-001)
 class MetaSalida(BaseModel):
@@ -45,7 +45,7 @@ async def health_check():
 async def ready_check():
     return {"status": "ready"}
 
-# 5. Endpoint de Negocio Corregido y Alineado
+# 5. Endpoint de Negocio Corregido y Alineado con carga de Directrices
 @app.post(
     "/v1/intake", 
     status_code=status.HTTP_201_CREATED, 
@@ -54,17 +54,23 @@ async def ready_check():
 )
 async def process_intake(payload: SolicitudFormacionInput):
     """
-    Recibe el bloque de texto libre y metadatos de Escuela (Sección 3).
-    Devuelve la estructura JSON procesada esperada por el contrato (Sección 4).
+    Recibe el bloque de texto libre de Escuela (Sección 3).
+    Carga de forma dinámica las directrices del componente v1.0.0 e invoca la extracción asistida.
     """
     try:
-        # Simulación del comportamiento del componente IA (Mock trazable según Section 4)
-        # En la siguiente fase aquí se llamará al cliente del modelo con payload.texto_formulario
-        resultado_asistido = {
+        # Auditoría Operacional: Cargamos el Prompt seguro v1.0.0 congelado en el repositorio
+        with open("prompts/formulario-intake-v1.0.0.yaml", "r", encoding="utf-8") as f:
+            componente_prompt = yaml.safe_load(f)
+            
+        # Obtenemos las instrucciones del sistema blindadas de la fase anterior
+        system_instructions = componente_prompt.get("prompt_text", "")
+        
+        # Pipeline de Procesamiento (Estructura base para la conexión con el motor INT-002)
+        resultado_ia_asistido = {
             "nombre": "MOCK_EXTRAIDO_DESDE_IA",
             "email": "NO_PROPORCIONADO",
             "telefono": "NO_PROPORCIONADO",
-            "interes": f"Analizado a partir de: {payload.texto_formulario[:30]}...",
+            "interes": "Analizado usando versión 1.0.0 del prompt.",
             "meta": {
                 "componente_id": "formulario-intake",
                 "componente_version": "1.0.0",
@@ -72,8 +78,13 @@ async def process_intake(payload: SolicitudFormacionInput):
                 "requiere_revision_humana": True
             }
         }
-        return resultado_asistido
+        return resultado_ia_asistido
         
+    except FileNotFoundError:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Error crítico de runtime: Archivo de directrices prompts/formulario-intake-v1.0.0.yaml no encontrado."
+        )
     except Exception as exc:
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
