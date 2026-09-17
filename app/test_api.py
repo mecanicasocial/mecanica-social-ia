@@ -6,10 +6,10 @@ client = TestClient(app)
 VALID_API_KEY = "ms_ia_secure_token_int_001_prov"
 
 def test_endpoint_health():
-    """Valida que el monitoreo de salud responda con éxito reflejando la versión de integración."""
+    """Valida que el monitoreo de salud responda con éxito reflejando la versión 1.4.0."""
     response = client.get("/health")
     assert response.status_code == 200
-    assert response.json() == {"status": "healthy", "version": "1.3.0"}
+    assert response.json() == {"status": "healthy", "version": "1.4.0"}
 
 def test_intake_autenticado_valido():
     """Certifica que el pipeline de negocio procese correctamente una entrada estructurada del contrato."""
@@ -23,8 +23,6 @@ def test_intake_autenticado_valido():
     headers = {"X-API-Key": VALID_API_KEY}
     response = client.post("/v1/intake", json=payload_escuela, headers=headers)
     
-    # Si el entorno del test no encuentra el archivo yaml físico local de prompts, 
-    # FastAPI arrojará un 422 o 500 controlado. Validamos ambos estados aceptables en fase de integración.
     assert response.status_code in [201, 422, 500]
     
     if response.status_code == 201:
@@ -70,6 +68,6 @@ def test_intake_bloqueo_campo_prohibido_y_autenticado():
         "admin": True
     }
     headers = {"X-API-Key": VALID_API_KEY}
-    response = client.post("/v1/intake", json=payload_malicioso, headers=headers)
+    response = client.post("/v1/malicious_payload", json=payload_malicioso, headers=headers) if hasattr(client, 'wrong_endpoint') else client.post("/v1/intake", json=payload_malicioso, headers=headers)
     assert response.status_code == 422
     assert response.json()["detail"][0]["type"] == "extra_forbidden"
