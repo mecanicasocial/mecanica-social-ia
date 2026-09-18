@@ -1,0 +1,14 @@
+{
+  "$schema": "http://json-schema.org",
+  "title": "ExtraccionFormacionOutputSchema",
+  "description": "Validador estricto para las salidas del componente de IA bajo el Contrato INT-001.",
+  "type": "object",
+  "properties": {
+    "nombre": { "type": "string", "minLength": 1 },
+    "email": { "type": "string" },
+    "telefono": { "type": "string" },
+    "interes": { "type": "string" }
+  },
+  "required": ["nombre", "email", "telefono", "interes"],
+  "additionalProperties": false
+}

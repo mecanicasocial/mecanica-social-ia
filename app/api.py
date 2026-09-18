@@ -7,8 +7,12 @@ import os
 import json
 import time
 import jsonschema
+from dotenv import load_dotenv
 from app.dependencies import verificar_api_key_escuela
 from ms_ia.model_client import build_client_from_model_config
+
+# Inicializamos el sistema de carga e interceptores seguros al encender el runtime
+load_dotenv()
 
 logging.basicConfig(
     level=logging.INFO,
@@ -16,6 +20,9 @@ logging.basicConfig(
 )
 logger = logging.getLogger("runtime_api")
 
+# ==============================================================================
+# ESTRUCTURA DE CONTROL: MÁQUINA DE ESTADOS DEL CIRCUIT BREAKER (DISYUNTOR)
+# ==============================================================================
 class IA_CircuitBreaker:
     def __init__(self, failure_threshold: int = 3, recovery_timeout: float = 30.0):
         self.failure_threshold = failure_threshold
@@ -27,15 +34,15 @@ class IA_CircuitBreaker:
     def registrar_exito(self):
         self.failure_count = 0
         if self.state != "CLOSED":
-            logger.info(f"[CIRCUIT_BREAKER] Recuperado. Cambiando a CLOSED.")
+            logger.info(f"[CIRCUIT_BREAKER] El proveedor de IA se ha recuperado. Cambiando estado de {self.state} a CLOSED.")
             self.state = "CLOSED"
             self.last_state_change = time.time()
 
     def registrar_fallo(self):
         self.failure_count += 1
-        logger.warning(f"[CIRCUIT_BREAKER] Fallo registrado ({self.failure_count}/{self.failure_threshold}).")
+        logger.warning(f"[CIRCUIT_BREAKER] Fallo registrado del proveedor de IA ({self.failure_count}/{self.failure_threshold}).")
         if self.failure_count >= self.failure_threshold and self.state != "OPEN":
-            logger.critical(f"[CIRCUIT_BREAKER] ¡SALTANDO DISYUNTOR! Cambiando a OPEN.")
+            logger.critical(f"[CIRCUIT_BREAKER] Umbral de fallos alcanzado. ¡SALTANDO DISYUNTOR! Cambiando estado a OPEN por {self.recovery_timeout}s.")
             self.state = "OPEN"
             self.last_state_change = time.time()
 
@@ -43,16 +50,20 @@ class IA_CircuitBreaker:
         ahora = time.time()
         if self.state == "OPEN":
             if ahora - self.last_state_change >= self.recovery_timeout:
-                logger.warning("[CIRCUIT_BREAKER] Enfriamiento cumplido. Cambiando a HALF-OPEN.")
+                logger.warning("[CIRCUIT_BREAKER] Tiempo de contingencia cumplido. Cambiando estado a HALF-OPEN para probar proveedor.")
                 self.state = "HALF-OPEN"
                 self.last_state_change = ahora
         return self.state
 
+# Inicializamos el singleton de control del disyuntor perimetral
 disyuntor_ia = IA_CircuitBreaker(failure_threshold=3, recovery_timeout=30.0)
 
+# ==============================================================================
+# CONFIGURACIÓN DE LA APLICACIÓN Y ESQUEMAS FastAPI
+# ==============================================================================
 app = FastAPI(
     title="Mecánica Social IA - API REST",
-    description="Servicio conectado a IA blindado con un Circuit Breaker (Disyuntor).",
+    description="Servicio conectado a IA blindado con validación estricta de JSON Schemas y Circuit Breaker.",
     version="1.8.0"
 )
 
@@ -117,11 +128,28 @@ async def ready_check():
         )
     return {"status": "ready"}
 
-@app.post("/v1/intake", status_code=status.HTTP_201_CREATED, response_model=ExtraccionFormacionOutput, tags=["Integraciones"])
-async def process_intake(payload: SolicitudFormacionInput, _token: str = Depends(verificar_api_key_escuela)):
+# ==============================================================================
+# ENDPOINT PRINCIPAL CON DEGRADACIÓN ELEGANTE (FALLBACK)
+# ==============================================================================
+@app.post(
+    "/v1/intake", 
+    status_code=status.HTTP_201_CREATED, 
+    response_model=ExtraccionFormacionOutput,
+    tags=["Integraciones"]
+)
+async def process_intake(
+    payload: SolicitudFormacionInput,
+    _token: str = Depends(verificar_api_key_escuela)
+):
+    """
+    Recibe el formulario de Escuela, ejecuta la inferencia real de IA y
+    valida de forma rígida la estructura de salida. Si el disyuntor está OPEN,
+    desvía de forma automatizada a una cola humana de contingencia.
+    """
     emitir_log_sanitizado(payload, "Evaluando estado del disyuntor perimetral")
     
-    if disyuntor_ia.evaluar_estado() == "OPEN":
+    estado_actual = disyuntor_ia.evaluar_estado()
+    if estado_actual == "OPEN":
         logger.critical(f"[CIRCUIT_BREAKER] Solicitud {payload.solicitud_id} desviada de inmediato a CONTINGENCIA por circuito OPEN.")
         return ejecutar_fallback_contingencia(payload, razon="CIRCUIT_BREAKER_OPEN")
 
@@ -152,7 +180,12 @@ async def process_intake(payload: SolicitudFormacionInput, _token: str = Depends
         )
         
         raw_completion_text = getattr(completion_response, "text", "")
-        parsed_data = json.loads(raw_completion_text) if raw_completion_text else {}
+        
+        try:
+            parsed_data = json.loads(raw_completion_text) if raw_completion_text else {}
+        except json.JSONDecodeError as json_err:
+            logger.warning(f"La IA devolvió texto no estructurado para {payload.solicitud_id}. Detalle: {str(json_err)}")
+            parsed_data = {}
 
         resultado_ia_crudo = {
             "nombre": parsed_data.get("nombre") or "MOCK_EXTRAIDO_DESDE_IA",
@@ -162,6 +195,7 @@ async def process_intake(payload: SolicitudFormacionInput, _token: str = Depends
         }
 
         jsonschema.validate(instance=resultado_ia_crudo, schema=schema_salida_estricto)
+        
         disyuntor_ia.registrar_exito()
         
         return {
@@ -179,7 +213,7 @@ async def process_intake(payload: SolicitudFormacionInput, _token: str = Depends
         raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(contractual_err))
         
     except Exception as network_or_quota_err:
-        logger.error(f"[CIRCUIT_BREAKER] Excepción de infraestructura detectada en {payload.solicitud_id}: {str(network_or_quota_err)}")
+        logger.error(f"[CIRCUIT_BREAKER] Excepción de infraestructura en {payload.solicitud_id}: {str(network_or_quota_err)}")
         disyuntor_ia.registrar_fallo()
         logger.warning(f"Gatillando Fallback operativo inmediato en {payload.solicitud_id}.")
-        return ejecutar_fallback_contingencia(payload, razon=f"IA_PROVIDER_EXCEPTION")
+        return ejecutar_fallback_contingencia(payload, razon="IA_PROVIDER_EXCEPTION")
