@@ -1,0 +1,15 @@
+# Exclusiones de Infraestructura Docker (Gobernanza de Repositorio)
+.git
+.gitignore
+.dockerignore
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+.venv/
+venv/
+ENV/
+env/
+.env
+data/records/
