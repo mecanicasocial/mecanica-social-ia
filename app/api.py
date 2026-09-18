@@ -1,6 +1,6 @@
 from fastapi import FastAPI, HTTPException, status, Depends, BackgroundTasks
 from pydantic import BaseModel, Field
-from typing import Optional, Literal
+from typing import Optional, Literal, Dict
 import yaml
 import logging
 import os
@@ -15,6 +15,38 @@ from ms_ia.model_client import build_client_from_model_config
 load_dotenv()
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - [AUDIT_LOG] %(message)s")
 logger = logging.getLogger("runtime_api")
+# ==============================================================================
+# ESCUDO PERIMETRAL: SISTEMA DE RATE LIMITING (TOKEN BUCKET LOCAL)
+# ==============================================================================
+class PerimetralRateLimiter:
+    def __init__(self, requests_limit: int = 5, window_seconds: float = 60.0):
+        self.requests_limit = requests_limit  # Límite máximo de peticiones por ventana
+        self.window_seconds = window_seconds  # Tamaño de la ventana en segundos
+        self.historial_consumos: Dict[str, list] = {}  # Mapeo de cliente -> marcas de tiempo
+
+    def verificar_limite(self, identificador_cliente: str) -> bool:
+        """
+        Evalúa si el cliente ha superado el umbral tolerable de tráfico.
+        Pasa el control si está dentro del límite, o retorna False si debe ser bloqueado.
+        """
+        ahora = time.time()
+        if identificador_cliente not in self.historial_consumos:
+            self.historial_consumos[identificador_cliente] = []
+
+        # Filtrar y remover marcas de tiempo que ya expiraron fuera de la ventana actual
+        marcas_validas = [filter_t for filter_t in self.historial_consumos[identificador_cliente] if (ahora - filter_t) < self.window_seconds]
+        self.historial_consumos[identificador_cliente] = marcas_validas
+
+        if len(marcas_validas) >= self.requests_limit:
+            logger.warning(f"[RATE_LIMITER] Cliente {identificador_cliente} bloqueado por ráfaga excesiva ({len(marcas_validas)}/{self.requests_limit}).")
+            return False
+
+        # Registrar la petición actual legítima
+        self.historial_consumos[identificador_cliente].append(ahora)
+        return True
+
+# Inicializamos el policía de tráfico perimetral (5 peticiones por minuto para pruebas)
+limitador_trafico = PerimetralRateLimiter(requests_limit=5, window_seconds=60.0)
 class IA_CircuitBreaker:
     def __init__(self, failure_threshold: int = 3, recovery_timeout: float = 30.0):
         self.failure_threshold = failure_threshold
@@ -45,8 +77,8 @@ class IA_CircuitBreaker:
 disyuntor_ia = IA_CircuitBreaker(failure_threshold=3, recovery_timeout=30.0)
 app = FastAPI(
     title="Mecánica Social IA - API REST",
-    description="Servicio con Persistencia Física y Webhooks de Notificación Asíncrona.",
-    version="2.1.0"
+    description="Servicio asíncrono blindado con Circuit Breaker, JSON Schema y Rate Limiting.",
+    version="2.2.0"
 )
 
 class SolicitudFormacionInput(BaseModel):
@@ -173,7 +205,7 @@ def ejecutar_pipeline_background(payload: SolicitudFormacionInput):
         disparar_webhook_escuela(payload.solicitud_id, resultado_fallback)
 @app.get("/health", status_code=status.HTTP_200_OK, tags=["Monitoreo"])
 async def health_check():
-    return {"status": "healthy", "version": "2.1.0", "circuit_state": disyuntor_ia.state}
+    return {"status": "healthy", "version": "2.2.0", "circuit_state": disyuntor_ia.state}
 
 @app.get("/ready", status_code=status.HTTP_200_OK, tags=["Monitoreo"])
 async def ready_check():
@@ -183,8 +215,16 @@ async def ready_check():
 
 @app.post("/v1/intake", status_code=status.HTTP_202_ACCEPTED, response_model=ExtraccionFormacionOutput, tags=["Integraciones"])
 async def process_intake(payload: SolicitudFormacionInput, background_tasks: BackgroundTasks, _token: str = Depends(verificar_api_key_escuela)):
-    emitir_log_sanitizado(payload, "Recibiendo solicitud HTTP - Desviando a BackgroundTask + Webhook pipeline")
+    emitir_log_sanitizado(payload, "Interceptando solicitud HTTP - Evaluando Rate Limiting")
     
+    # CONTROL DE AUDITORÍA FASE 10: Bloquear ráfagas abusivas de peticiones por API Key (token)
+    if not limitador_trafico.verificar_limite(identificador_cliente=_token):
+        logger.critical(f"[PROTECCION_TRAFICO] Bloqueando exceso de consumo para el token autorizado.")
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail="Tasa de solicitudes excedida. Límite de infraestructura: Máximo 5 peticiones por minuto."
+        )
+
     if disyuntor_ia.evaluar_estado() == "OPEN":
         logger.critical(f"[CIRCUIT_BREAKER] Bloqueo perimetral por circuito OPEN.")
         raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="Servicio degradado.")
