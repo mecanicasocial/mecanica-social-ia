@@ -5,7 +5,6 @@ import yaml
 import logging
 import os
 import json
-import time
 import jsonschema
 from dotenv import load_dotenv
 from app.dependencies import verificar_api_key_escuela
@@ -63,8 +62,8 @@ disyuntor_ia = IA_CircuitBreaker(failure_threshold=3, recovery_timeout=30.0)
 # ==============================================================================
 app = FastAPI(
     title="Mecánica Social IA - API REST",
-    description="Servicio conectado a IA blindado con validación estricta de JSON Schemas y Circuit Breaker.",
-    version="1.8.0"
+    description="Servicio en runtime conectado a IA con validación estricta de JSON Schemas avanzados.",
+    version="1.7.0"
 )
 
 class SolicitudFormacionInput(BaseModel):
@@ -117,7 +116,7 @@ def ejecutar_fallback_contingencia(payload: SolicitudFormacionInput, razon: str)
 
 @app.get("/health", status_code=status.HTTP_200_OK, tags=["Monitoreo"])
 async def health_check():
-    return {"status": "healthy", "version": "1.8.0", "circuit_state": disyuntor_ia.state}
+    return {"status": "healthy", "version": "1.7.0"}
 
 @app.get("/ready", status_code=status.HTTP_200_OK, tags=["Monitoreo"])
 async def ready_check():
@@ -143,21 +142,17 @@ async def process_intake(
 ):
     """
     Recibe el formulario de Escuela, ejecuta la inferencia real de IA y
-    valida de forma rígida la estructura de salida. Si el disyuntor está OPEN,
-    desvía de forma automatizada a una cola humana de contingencia.
+    valida de forma rígida la estructura de salida contra un JSON Schema avanzado.
     """
-    emitir_log_sanitizado(payload, "Evaluando estado del disyuntor perimetral")
-    
-    estado_actual = disyuntor_ia.evaluar_estado()
-    if estado_actual == "OPEN":
-        logger.critical(f"[CIRCUIT_BREAKER] Solicitud {payload.solicitud_id} desviada de inmediato a CONTINGENCIA por circuito OPEN.")
-        return ejecutar_fallback_contingencia(payload, razon="CIRCUIT_BREAKER_OPEN")
+    emitir_log_sanitizado(payload, "Iniciando pipeline de extracción con validación JSON Schema")
 
     try:
+        # 1. Cargar las directrices seguras v1.0.0 congeladas en el repositorio
         with open("prompts/formulario-intake-v1.0.0.yaml", "r", encoding="utf-8") as f:
             componente_prompt = yaml.safe_load(f)
         system_instructions = componente_prompt.get("prompt_text", "")
 
+        # 2. Cargar el JSON Schema oficial congelado en data/schemas/
         with open("data/schemas/int-001-output.schema.json", "r", encoding="utf-8") as f:
             schema_salida_estricto = json.load(f)
 
@@ -170,8 +165,10 @@ async def process_intake(
             "max_tokens": 512
         }
 
+        # Inicialización del cliente nativo
         client = build_client_from_model_config(model_cfg)
         
+        # Ejecución de la inferencia real contra el proveedor
         completion_response = client.complete(
             system_or_prompt=system_instructions,
             user_input=payload.texto_formulario,
@@ -187,6 +184,7 @@ async def process_intake(
             logger.warning(f"La IA devolvió texto no estructurado para {payload.solicitud_id}. Detalle: {str(json_err)}")
             parsed_data = {}
 
+        # Fallback básico para estructurar el diccionario antes de pasarlo al validador rígido
         resultado_ia_crudo = {
             "nombre": parsed_data.get("nombre") or "MOCK_EXTRAIDO_DESDE_IA",
             "email": parsed_data.get("email") or "NO_PROPORCIONADO",
@@ -194,11 +192,12 @@ async def process_intake(
             "interes": parsed_data.get("interes") or "Analizado usando versión 1.0.0 del prompt."
         }
 
+        # 3. CONTROL DE AUDITORÍA AVANZADO: Validar estructuralmente la salida del modelo
+        # Si la estructura viola las reglas, disparará un ValidationError inmediato
         jsonschema.validate(instance=resultado_ia_crudo, schema=schema_salida_estricto)
         
-        disyuntor_ia.registrar_exito()
-        
-        return {
+        # 4. Construcción final del objeto de salida agregando metadatos institucionales
+        resultado_ia_validado = {
             **resultado_ia_crudo,
             "meta": {
                 "componente_id": "formulario-intake",
@@ -208,12 +207,24 @@ async def process_intake(
             }
         }
         
-    except (jsonschema.ValidationError, FileNotFoundError) as contractual_err:
-        logger.error(f"Fallo contractual controlado para {payload.solicitud_id}: {str(contractual_err)}")
-        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(contractual_err))
+        logger.info(f"Solicitud {payload.solicitud_id} superó la validación estricta de JSON Schema.")
+        return resultado_ia_validado
         
-    except Exception as network_or_quota_err:
-        logger.error(f"[CIRCUIT_BREAKER] Excepción de infraestructura en {payload.solicitud_id}: {str(network_or_quota_err)}")
-        disyuntor_ia.registrar_fallo()
-        logger.warning(f"Gatillando Fallback operativo inmediato en {payload.solicitud_id}.")
-        return ejecutar_fallback_contingencia(payload, razon="IA_PROVIDER_EXCEPTION")
+    except FileNotFoundError as fnf_err:
+        logger.error(f"Archivo de directrices o esquema ausente en {payload.solicitud_id}: {str(fnf_err)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Error crítico de runtime: Faltan archivos de configuración base del servidor."
+        )
+    except jsonschema.ValidationError as schema_err:
+        logger.error(f"ALUCINACIÓN DETECTADA: La salida del modelo para {payload.solicitud_id} violó el JSON Schema. Detalle: {str(schema_err)}")
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=f"Fallo de consistencia: La salida estructurada de la IA violó las reglas del contrato."
+        )
+    except Exception as exc:
+        logger.error(f"Fallo en el pipeline de procesamiento de IA en {payload.solicitud_id}: {str(exc)}")
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=f"Fallo en el pipeline de procesamiento de IA: {str(exc)}"
+        )

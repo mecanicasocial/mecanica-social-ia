@@ -13,12 +13,10 @@ def setup_function():
     disyuntor_ia.failure_count = 0
 
 def test_endpoint_health():
-    """Valida que el monitoreo de salud responda con éxito reflejando el estado del disyuntor 1.8.0."""
+    """Valida que el monitoreo de salud responda con éxito reflejando la versión 1.7.0."""
     response = client.get("/health")
     assert response.status_code == 200
-    json_data = response.json()
-    assert json_data["version"] == "1.8.0"
-    assert json_data["circuit_state"] == "CLOSED"
+    assert response.json() == {"status": "healthy", "version": "1.7.0"}
 
 def test_intake_autenticado_valido():
     """Certifica que el pipeline procese solicitudes cuando el cliente usa la API Key legítima."""
@@ -31,7 +29,13 @@ def test_intake_autenticado_valido():
     }
     headers = {"X-API-Key": VALID_API_KEY}
     response = client.post("/v1/intake", json=payload_escuela, headers=headers)
-    assert response.status_code in [201, 422, 500]
+    
+    assert response.status_code in [201, 422]
+    
+    if response.status_code == 201:
+        json_data = response.json()
+        assert "nombre" in json_data
+        assert json_data["meta"]["modelo_ref"] == "openai-compatible-eval"
 
 def test_intake_bloqueo_sin_api_key():
     """Verifica el bloqueo inmediato (HTTP 401) si la Escuela omite las credenciales."""
@@ -71,8 +75,6 @@ def test_intake_bloqueo_campo_prohibido_y_autenticado():
     headers = {"X-API-Key": VALID_API_KEY}
     response = client.post("/v1/intake", json=payload_malicioso, headers=headers)
     assert response.status_code == 422
-    
-    # CORRECCIÓN DE AUDITORÍA: Accedemos de forma segura a la lista detail de errores
     assert response.json()["detail"][0]["type"] == "extra_forbidden"
 
 def test_intake_contingencia_cuando_circuito_abierto():
