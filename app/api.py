@@ -19,13 +19,53 @@ logging.basicConfig(
 )
 logger = logging.getLogger("runtime_api")
 
+# ==============================================================================
+# ESTRUCTURA DE CONTROL: MÁQUINA DE ESTADOS DEL CIRCUIT BREAKER (DISYUNTOR)
+# ==============================================================================
+class IA_CircuitBreaker:
+    def __init__(self, failure_threshold: int = 3, recovery_timeout: float = 30.0):
+        self.failure_threshold = failure_threshold
+        self.recovery_timeout = recovery_timeout
+        self.failure_count = 0
+        self.state = "CLOSED"
+        self.last_state_change = time.time()
+
+    def registrar_exito(self):
+        self.failure_count = 0
+        if self.state != "CLOSED":
+            logger.info(f"[CIRCUIT_BREAKER] El proveedor de IA se ha recuperado. Cambiando estado de {self.state} a CLOSED.")
+            self.state = "CLOSED"
+            self.last_state_change = time.time()
+
+    def registrar_fallo(self):
+        self.failure_count += 1
+        logger.warning(f"[CIRCUIT_BREAKER] Fallo registrado del proveedor de IA ({self.failure_count}/{self.failure_threshold}).")
+        if self.failure_count >= self.failure_threshold and self.state != "OPEN":
+            logger.critical(f"[CIRCUIT_BREAKER] Umbral de fallos alcanzado. ¡SALTANDO DISYUNTOR! Cambiando estado a OPEN por {self.recovery_timeout}s.")
+            self.state = "OPEN"
+            self.last_state_change = time.time()
+
+    def evaluar_estado(self):
+        ahora = time.time()
+        if self.state == "OPEN":
+            if ahora - self.last_state_change >= self.recovery_timeout:
+                logger.warning("[CIRCUIT_BREAKER] Tiempo de contingencia cumplido. Cambiando estado a HALF-OPEN para probar proveedor.")
+                self.state = "HALF-OPEN"
+                self.last_state_change = ahora
+        return self.state
+
+# Inicializamos el singleton de control del disyuntor perimetral
+disyuntor_ia = IA_CircuitBreaker(failure_threshold=3, recovery_timeout=30.0)
+
+# ==============================================================================
+# CONFIGURACIÓN DE LA APLICACIÓN Y ESQUEMAS FastAPI
+# ==============================================================================
 app = FastAPI(
     title="Mecánica Social IA - API REST",
     description="Servicio en runtime conectado a IA con validación estricta de JSON Schemas avanzados.",
     version="1.7.0"
 )
 
-# ESQUEMA DE ENTRADA REAL (Sección 3 del Contrato INT-001)
 class SolicitudFormacionInput(BaseModel):
     solicitud_id: str = Field(..., description="ID opaco de Escuela; sin PII en el id.")
     texto_formulario: str = Field(..., description="Texto libre de la solicitud de participación.")
@@ -34,10 +74,8 @@ class SolicitudFormacionInput(BaseModel):
     clasificacion_datos: Literal["sintetica", "publica", "autorizada"] = Field(
         ..., description="Categoría de clasificación de datos aprobada."
     )
-
     model_config = {"extra": "forbid"}
 
-# ESQUEMA DE SALIDA REAL (Sección 4 del Contrato INT-001)
 class MetaSalida(BaseModel):
     componente_id: str = "formulario-intake"
     componente_version: str = "1.0.0"
@@ -61,14 +99,37 @@ def emitir_log_sanitizado(payload: SolicitudFormacionInput, mensaje_accion: str)
     }
     logger.info(f"{mensaje_accion} | Metadata Institucional: {log_seguro}")
 
+def ejecutar_fallback_contingencia(payload: SolicitudFormacionInput, razon: str) -> dict:
+    logger.info(f"Estructurando payload seguro de degradación para la cola humana. Motivo: {razon}")
+    return {
+        "nombre": "DEGRADADO_A_COLA_HUMANA",
+        "email": "NO_PROPORCIONADO",
+        "telefono": "NO_PROPORCIONADO",
+        "interes": "PROCESAMIENTO_DEGRADADO: El motor de IA experimentó una indisponibilidad temporal. El formulario requiere extracción manual por personal calificado.",
+        "meta": {
+            "componente_id": "formulario-intake",
+            "componente_version": "1.0.0",
+            "modelo_ref": f"FALLBACK_DEGRADATION_{razon}",
+            "requiere_revision_humana": True
+        }
+    }
+
 @app.get("/health", status_code=status.HTTP_200_OK, tags=["Monitoreo"])
 async def health_check():
     return {"status": "healthy", "version": "1.7.0"}
 
 @app.get("/ready", status_code=status.HTTP_200_OK, tags=["Monitoreo"])
 async def ready_check():
+    if disyuntor_ia.evaluar_estado() == "OPEN":
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Servicio parcialmente degradado: El motor de IA no está aceptando conexiones."
+        )
     return {"status": "ready"}
 
+# ==============================================================================
+# ENDPOINT PRINCIPAL CON DEGRADACIÓN ELEGANTE (FALLBACK)
+# ==============================================================================
 @app.post(
     "/v1/intake", 
     status_code=status.HTTP_201_CREATED, 
