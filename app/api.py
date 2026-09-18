@@ -7,6 +7,7 @@ import os
 import json
 import time
 import jsonschema
+import httpx
 from dotenv import load_dotenv
 from app.dependencies import verificar_api_key_escuela
 from ms_ia.model_client import build_client_from_model_config
@@ -44,8 +45,8 @@ class IA_CircuitBreaker:
 disyuntor_ia = IA_CircuitBreaker(failure_threshold=3, recovery_timeout=30.0)
 app = FastAPI(
     title="Mecánica Social IA - API REST",
-    description="Servicio desacoplado de alta concurrencia mediante Background Tasks.",
-    version="2.0.0"
+    description="Servicio con Persistencia Física y Webhooks de Notificación Asíncrona.",
+    version="2.1.0"
 )
 
 class SolicitudFormacionInput(BaseModel):
@@ -61,28 +62,48 @@ class MetaSalida(BaseModel):
     componente_version: str = "1.0.0"
     modelo_ref: Optional[str] = "openai-compatible-eval"
     requiere_revision_humana: bool = True
-    status_proceso: str = Field("accepted", description="Estado asíncrono de la solicitud.")
+    status_proceso: str = Field("accepted", description="Estado asíncrono.")
     tiempo_respuesta_ms: Optional[int] = Field(None, description="Latencia de la IA.")
 
 class ExtraccionFormacionOutput(BaseModel):
-    solicitud_id: str = Field(..., description="Confirmación de ID opaco recibido.")
-    status: str = Field("processing", description="Glosa de estado perimetral.")
+    solicitud_id: str = Field(..., description="ID opaco recibido.")
+    status: str = Field("processing", description="Estado perimetral.")
     meta: MetaSalida = Field(default_factory=MetaSalida)
 def emitir_log_sanitizado(payload: SolicitudFormacionInput, mensaje_accion: str, tiempo_ms: Optional[int] = None):
     log_seguro = {
         "solicitud_id": payload.solicitud_id,
         "programa_ref": payload.programa_ref,
+        "locale": payload.locale,
+        "clasificacion_datos": payload.clasificacion_datos,
         "texto_formulario": "[REDACTED_PII]",
         "tiempo_respuesta_ms": tiempo_ms
     }
     logger.info(f"{mensaje_accion} | Metadata: {log_seguro}")
 
+def disparar_webhook_escuela(solicitud_id: str, payload_estructurado: dict):
+    url_callback_escuela = os.getenv("ESCUELA_WEBHOOK_URL", "http://localhost:8001/webhooks/escuela-intake")
+    logger.info(f"[WEBHOOK_DISPATCHER] Notificando asíncronamente a {url_callback_escuela}")
+    try:
+        headers = {"X-Event-Type": "intake.processed"}
+        response = httpx.post(url_callback_escuela, json=payload_estructurado, headers=headers, timeout=5.0)
+        logger.info(f"[WEBHOOK_DISPATCHER] Respuesta Escuela HTTP {response.status_code}")
+    except Exception as err:
+        logger.error(f"[WEBHOOK_DISPATCHER] Error de entrega: {str(err)}")
+
+def ejecutar_fallback_contingencia(payload: SolicitudFormacionInput, razon: str, tiempo_ms: Optional[int] = None) -> dict:
+    return {
+        "nombre": "DEGRADADO_A_COLA_HUMANA",
+        "email": "NO_PROPORCIONADO",
+        "telefono": "NO_PROPORCIONADO",
+        "interes": "PROCESAMIENTO_DEGRADADO: Extracción manual requerida por contingencia.",
+        "meta": {
+            "componente_id": "formulario-intake", "componente_version": "1.0.0",
+            "modelo_ref": f"FALLBACK_DEGRADATION_{razon}", "requiere_revision_humana": True,
+            "tiempo_respuesta_ms": tiempo_ms
+        }
+    }
 def ejecutar_pipeline_background(payload: SolicitudFormacionInput):
-    """
-    HITO ARQUITECTÓNICO FASE 8: Orquestación pesada ejecutada fuera del hilo HTTP.
-    Mide latencia, consume el LLM, valida esquemas y procesa la persistencia de forma aislada.
-    """
-    logger.info(f"[BACKGROUND_TASK] Iniciando procesamiento asíncrono para ID: {payload.solicitud_id}")
+    logger.info(f"[BACKGROUND_TASK] Procesando ID: {payload.solicitud_id}")
     start_time = time.perf_counter()
     try:
         with open("prompts/formulario-intake-v1.0.0.yaml", "r", encoding="utf-8") as f:
@@ -123,60 +144,59 @@ def ejecutar_pipeline_background(payload: SolicitudFormacionInput):
         jsonschema.validate(instance=resultado_ia_crudo, schema=schema_salida_estricto)
         disyuntor_ia.registrar_exito()
         
-        logger.info(f"[BACKGROUND_TASK] ÉXITO: Solicitud {payload.solicitud_id} procesada y validada en {tiempo_respuesta_ms}ms de forma asíncrona.")
-        # En la Fase 9 aquí se gatillará la persistencia física del resultado y el disparo del Webhook de salida
+        resultado_final_completo = {
+            **resultado_ia_crudo,
+            "meta": {
+                "componente_id": "formulario-intake", "componente_version": "1.0.0",
+                "modelo_ref": model_cfg["model_id"], "requiere_revision_humana": True,
+                "tiempo_respuesta_ms": tiempo_respuesta_ms, "status_proceso": "completed"
+            }
+        }
+
+        os.makedirs("data/records", exist_ok=True)
+        ruta_archivo = f"data/records/{payload.solicitud_id}.json"
+        with open(ruta_archivo, "w", encoding="utf-8") as file_out:
+            json.dump(resultado_final_completo, file_out, ensure_ascii=False, indent=2)
+
+        disparar_webhook_escuela(payload.solicitud_id, resultado_final_completo)
         
     except Exception as exc:
         end_time = time.perf_counter()
         tiempo_respuesta_ms = int((end_time - start_time) * 1000)
-        logger.error(f"[BACKGROUND_TASK] FALLO CRÍTICO asíncrono en {payload.solicitud_id} tras {tiempo_respuesta_ms}ms: {str(exc)}")
+        logger.error(f"[BACKGROUND_TASK] FALLO CRÍTICO en {payload.solicitud_id}: {str(exc)}")
         disyuntor_ia.registrar_fallo()
+        
+        resultado_fallback = ejecutar_fallback_contingencia(payload, razon="BACKGROUND_PIPELINE_EXCEPTION", tiempo_ms=tiempo_respuesta_ms)
+        os.makedirs("data/records", exist_ok=True)
+        with open(f"data/records/{payload.solicitud_id}.json", "w", encoding="utf-8") as file_out:
+            json.dump(resultado_fallback, file_out, ensure_ascii=False, indent=2)
+        disparar_webhook_escuela(payload.solicitud_id, resultado_fallback)
 @app.get("/health", status_code=status.HTTP_200_OK, tags=["Monitoreo"])
 async def health_check():
-    return {"status": "healthy", "version": "2.0.0", "circuit_state": disyuntor_ia.state}
+    return {"status": "healthy", "version": "2.1.0", "circuit_state": disyuntor_ia.state}
 
 @app.get("/ready", status_code=status.HTTP_200_OK, tags=["Monitoreo"])
 async def ready_check():
     if disyuntor_ia.evaluar_estado() == "OPEN":
         raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="Circuit breaker abierto.")
     return {"status": "ready"}
-@app.post(
-    "/v1/intake", 
-    status_code=status.HTTP_202_ACCEPTED, # Cambiado formalmente a 202 por estándar asíncrono
-    response_model=ExtraccionFormacionOutput,
-    tags=["Integraciones"]
-)
-async def process_intake(
-    payload: SolicitudFormacionInput,
-    background_tasks: BackgroundTasks, # Inyección del despachador de tareas de FastAPI
-    _token: str = Depends(verificar_api_key_escuela)
-):
-    """
-    Recibe el formulario de Escuela, delega la inferencia pesada a la cola en segundo plano
-    y libera la conexión HTTP de forma inmediata con un estado 202 Accepted.
-    """
-    emitir_log_sanitizado(payload, "Recibiendo solicitud HTTP perimetral - Desviando a BackgroundTask")
+
+@app.post("/v1/intake", status_code=status.HTTP_202_ACCEPTED, response_model=ExtraccionFormacionOutput, tags=["Integraciones"])
+async def process_intake(payload: SolicitudFormacionInput, background_tasks: BackgroundTasks, _token: str = Depends(verificar_api_key_escuela)):
+    emitir_log_sanitizado(payload, "Recibiendo solicitud HTTP - Desviando a BackgroundTask + Webhook pipeline")
     
     if disyuntor_ia.evaluar_estado() == "OPEN":
-        logger.critical(f"[CIRCUIT_BREAKER] Bloqueo perimetral para {payload.solicitud_id} por circuito OPEN.")
-        raise HTTPException(
-            status_code=status.HTTP_503_SERVICE_UNAVAILABLE, 
-            detail="Servicio temporalmente degradado en contingencia humana."
-        )
+        logger.critical(f"[CIRCUIT_BREAKER] Bloqueo perimetral por circuito OPEN.")
+        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="Servicio degradado.")
 
-    # Encolar la ejecución pesada de red en el worker en segundo plano nativo
     background_tasks.add_task(ejecutar_pipeline_background, payload)
 
-    # Construcción de la respuesta inmediata ultra-rápida (Liberación del hilo HTTP)
-    respuesta_asincrona = {
+    return {
         "solicitud_id": payload.solicitud_id,
         "status": "processing",
         "meta": {
-            "componente_id": "formulario-intake",
-            "componente_version": "1.0.0",
-            "modelo_ref": "openai-compatible-eval",
-            "requiere_revision_humana": True,
+            "componente_id": "formulario-intake", "componente_version": "1.0.0",
+            "modelo_ref": "openai-compatible-eval", "requiere_revision_humana": True,
             "status_proceso": "accepted"
         }
     }
-    return respuesta_asincrona
