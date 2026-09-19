@@ -9,8 +9,6 @@ pydantic[email]>=2.6.0
 
 # Herramientas de Desarrollo y Testing Automatizado
 pytest>=8.0.0
-httpx>=0.27.0
 python-dotenv>=1.0.1
 jsonschema>=4.21.0
-httpx>=0.27.0
 httpx>=0.27.0
