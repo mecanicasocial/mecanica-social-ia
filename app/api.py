@@ -90,9 +90,9 @@ def ejecutar_pipeline_background(payload: SolicitudFormacionInput):
         tiempo_ms = int((time.perf_counter() - start_time) * 1000)
         parsed = json.loads(getattr(res, "text", "")) if getattr(res, "text", "") else {}
         crudo = {"nombre": parsed.get("nombre") or "MOCK_EXTRAIDO", "email": parsed.get("email") or "NO_PR", "telefono": parsed.get("telefono") or "NO_PR", "interes": parsed.get("interes") or "Analizado."}
-        jsonschema.validate(instance=crudo, schema=ss)
         disyuntor_ia.registrar_exito()
         final = {**crudo, "meta": {"componente_id": "formulario-intake", "componente_version": "1.0.0", "modelo_ref": "openai-compatible-eval", "requiere_revision_humana": True, "tiempo_respuesta_ms": tiempo_ms, "status_proceso": "completed"}}
+        jsonschema.validate(instance=final, schema=ss)
         disparar_webhook_escuela(payload.solicitud_id, final)
     except Exception as exc:
         tiempo_ms = int((time.perf_counter() - start_time) * 1000); disyuntor_ia.registrar_fallo()
