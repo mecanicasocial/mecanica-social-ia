@@ -78,7 +78,7 @@ def disparar_webhook_escuela(solicitud_id: str, payload: dict):
     except Exception as err: logger.error(f"Fallo webhook: {str(err)}")
 
 def ejecutar_fallback_contingencia(payload: SolicitudFormacionInput, razon: str, tiempo_ms: Optional[int] = None) -> dict:
-    return {"nombre": "DEGRADADO_A_COLA_HUMANA", "email": "NO_PROPORCIONADO", "telefono": "NO_PROPORCIONADO", "interes": f"PROCESAMIENTO_DEGRADADO: {razon}", "meta": {"componente_id": "formulario-intake", "componente_version": "1.0.0", "modelo_ref": "FALLBACK", "requiere_revision_humana": True, "tiempo_respuesta_ms": tiempo_ms}}
+    return {"nombre": "DEGRADADO_A_COLA_HUMANA", "email": "NO_PROPORCIONADO", "telefono": "NO_PROPORCIONADO", "interes": f"PROCESAMIENTO_DEGRADADO: {razon}", "meta": {"componente_id": "formulario-intake", "componente_version": "1.0.0", "modelo_ref": "FALLBACK", "requiere_revision_humana": True, "tiempo_respuesta_ms": tiempo_ms, "status_proceso": "degraded"}}
 def ejecutar_pipeline_background(payload: SolicitudFormacionInput):
     start_time = time.perf_counter()
     try:
@@ -96,7 +96,9 @@ def ejecutar_pipeline_background(payload: SolicitudFormacionInput):
         disparar_webhook_escuela(payload.solicitud_id, final)
     except Exception as exc:
         tiempo_ms = int((time.perf_counter() - start_time) * 1000); disyuntor_ia.registrar_fallo()
-        disparar_webhook_escuela(payload.solicitud_id, ejecutar_fallback_contingencia(payload, str(exc), tiempo_ms))
+        resultado_fallback = ejecutar_fallback_contingencia(payload, str(exc), tiempo_ms)
+        jsonschema.validate(instance=resultado_fallback, schema=ss)
+        disparar_webhook_escuela(payload.solicitud_id, resultado_fallback)
 @app.get("/health")
 async def health_check(): return {"status": "healthy", "version": "2.2.0", "circuit_state": disyuntor_ia.state}
 @app.get("/ready")
