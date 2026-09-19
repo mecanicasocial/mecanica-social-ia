@@ -70,3 +70,10 @@ De acuerdo con los criterios de validación de la arquitectura de resiliencia, s
 2. Este disyuntor perimetral constituye un mecanismo local por instancia; NO es un sistema de control distribuido ni comparte su estado a través de la red.
 3. En escenarios de escalamiento distribuido con múltiples réplicas o instancias activas en paralelo (ej. API-1 y API-2), cada contenedor evaluará de forma independiente sus umbrales de fallo sin sincronizar los cambios de estado (CLOSED/OPEN) de forma centralizada.
 4. Se clasifica formalmente como una implementación correcta y suficiente para la fase de MVP local, requiriendo el uso de tecnologías de almacenamiento compartido (como Redis) en caso de una migración futura hacia una topología de producción distribuida masiva.
+
+### ⚠️ ADVERTENCIA DE SEGURIDAD: RATE LIMITING LOCAL POR INSTANCIA
+De acuerdo con los criterios de validación de la arquitectura de control de tráfico, se hace explícito que:
+1. El componente `PerimetralRateLimiter` opera bajo un aislamiento estricto almacenando los consumos en un diccionario en memoria volátil (`historial_consumos`).
+2. Este limitador perimetral constituye un mecanismo local por instancia; los contadores acumulados se perderán de forma permanente ante cualquier reinicio del proceso del servidor web FastAPI.
+3. En escenarios de escalamiento distribuido con múltiples réplicas (ej. Instancia A e Instancia B), cada contenedor computará de forma independiente sus propias cuotas de tráfico (5 solicitudes por minuto) sin sincronizar los consumos de los clientes autenticados a través de la red.
+4. Se clasifica formalmente como una implementación correcta y recomendada para la fase de MVP local, posponiendo la introducción de bases de datos en memoria (como Redis) hasta que se autorice formalmente una transición hacia una topología de producción distribuida masiva.
