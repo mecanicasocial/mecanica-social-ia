@@ -78,3 +78,15 @@ De acuerdo con los criterios de validación de la arquitectura de control de tr�
 3. En escenarios de escalamiento distribuido con múltiples réplicas (ej. Instancia A e Instancia B), cada contenedor computará de forma independiente sus propias cuotas de tráfico (5 solicitudes por minuto) sin sincronizar los consumos de los clientes autenticados a través de la red.
 4. Se clasifica formalmente como una implementación correcta y recomendada para la fase de MVP local, posponiendo la introducción de bases de datos en memoria (como Redis) hasta que se autorice formalmente una transición hacia una topología de producción distribuida masiva.
 1. **Seguridad del Webhook Saliente:** Se declara formalmente que la comunicación técnica saliente actual IA -> Escuela transmite únicamente la cabecera `X-Event-Type`. Carece de API Keys de aplicación, firmas criptográficas HMAC, OAuth o certificados mutuos mTLS. Su uso operativo en producción queda estrictamente inhabilitado hasta que Mecánica Social Escuela defina y apruebe bilateralmente el protocolo de autenticación saliente correspondiente.
+
+### 📊 6. Semántica de Validación Cruzada de Esquemas
+Para garantizar la integridad total de la información en todo su ciclo de vida, el Runtime subdivide el Contrato INT-001 en dos flujos semánticos de validación independientes:
+1. **Fase de Aceptación HTTP (Emisión Inmediata):** Validada estrictamente contra `int-001-intake-response.schema.json`. Regula el payload de respuesta de confirmación asíncrona entregado al cliente en milisegundos ante un código `HTTP 202 Accepted`.
+2. **Fase de Extracción Operacional (Procesamiento IA):** Validada estrictamente contra `int-001-output.schema.json`. Regula la estructura definitiva generada por el LLM en segundo plano (`nombre`, `email`, `telefono`, `interes`, `meta`) que se transmite de forma asíncrona mediante el webhook callback.
+
+#### 🔄 Diagrama de Flujo del Ciclo de Vida Contractual:
+Escuela Request -> [POST /v1/intake] -> Valida Entrada Pydantic
+                      │
+                      ├──> [Aceptación HTTP] -> int-001-intake-response.schema.json -> HTTP 202 Accepted
+                      │
+                      └──> [BackgroundTask] -> Inferencia de IA -> int-001-output.schema.json -> Webhook
