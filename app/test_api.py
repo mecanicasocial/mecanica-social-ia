@@ -1,3 +1,7 @@
+import os
+os.environ["AMBIENTE"] = "development"
+os.environ["API_KEY_ESCUELA_TOKEN"] = "ms_ia_secure_token_int_001_env_secured"
+os.environ["MS_IA_MODEL_API_KEY"] = "mock_local_secret_key"
 from fastapi.testclient import TestClient
 import os
 import shutil
@@ -8,7 +12,6 @@ load_dotenv()
 client = TestClient(app)
 VALID_API_KEY = os.getenv("API_KEY_ESCUELA_TOKEN", "ms_ia_secure_token_int_001_env_secured")
 import os
-os.environ["API_KEY_ESCUELA_TOKEN"] = VALID_API_KEY
 
 def setup_function():
     disyuntor_ia.state = "CLOSED"
