@@ -69,13 +69,27 @@ def emitir_log_sanitizado(payload: SolicitudFormacionInput, mensaje: str, tiempo
     log = {"solicitud_id": payload.solicitud_id, "programa_ref": payload.programa_ref, "texto_formulario": "[REDACTED_PII]", "tiempo_respuesta_ms": tiempo_ms}
     logger.info(f"{mensaje} | Metadata: {log}")
 
-def disparar_webhook_escuela(solicitud_id: str, payload: dict):
-    if os.getenv("AMBIENTE", "development") != "production":
-        logger.warning(f"[MOCK_DEVELOPMENT] Webhook simulado para {solicitud_id}. Bloqueo de red activo.")
+def disparar_webhook_escuela(solicitud_id: str, payload_estructurado: dict):
+    ambiente_actual = os.getenv("AMBIENTE", "development")
+    url_callback_escuela = os.getenv("ESCUELA_WEBHOOK_URL")
+    
+    # CONTROL PERIMETRAL MANDATORIO DE AUDITORÍA
+    if ambiente_actual == "production" and not url_callback_escuela:
+        logger.critical("[SANEAMIENTO_SEGURIDAD] INTEGRACIÓN BLOQUEADA: ESCUELA_WEBHOOK_URL es obligatoria en produccion.")
+        raise RuntimeError("ESCUELA_WEBHOOK_URL es obligatoria en produccion")
+        
+    if ambiente_actual != "production":
+        logger.warning(f"[MOCK_DEVELOPMENT] Barrera activa para {solicitud_id}. Simulacion de Webhook local para impedir fugas.")
+        logger.info(f"[MOCK_DEVELOPMENT] Datos: {json.dumps(payload_estructurado)}")
         return
+
+    logger.info(f"[WEBHOOK_DISPATCHER] Despachando notificacion hacia {url_callback_escuela}")
     try:
-        httpx.post(os.getenv("ESCUELA_WEBHOOK_URL", "http://localhost:8001/webhooks/escuela-intake"), json=payload, headers={"X-Event-Type": "intake.processed"}, timeout=5.0)
-    except Exception as err: logger.error(f"Fallo webhook: {str(err)}")
+        headers = {"X-Event-Type": "intake.processed"}
+        response = httpx.post(url_callback_escuela, json=payload_estructurado, headers=headers, timeout=5.0)
+        logger.info(f"[WEBHOOK_DISPATCHER] Respuesta Escuela HTTP {response.status_code}")
+    except Exception as err:
+        logger.error(f"[WEBHOOK_DISPATCHER] Error de entrega: {str(err)}")
 
 def ejecutar_fallback_contingencia(payload: SolicitudFormacionInput, razon: str, tiempo_ms: Optional[int] = None) -> dict:
     return {"nombre": "DEGRADADO_A_COLA_HUMANA", "email": "NO_PROPORCIONADO", "telefono": "NO_PROPORCIONADO", "interes": f"PROCESAMIENTO_DEGRADADO: {razon}", "meta": {"componente_id": "formulario-intake", "componente_version": "1.0.0", "modelo_ref": "FALLBACK", "requiere_revision_humana": True, "tiempo_respuesta_ms": tiempo_ms, "status_proceso": "degraded"}}
