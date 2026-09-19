@@ -6,8 +6,28 @@
     "nombre": { "type": "string" },
     "email": { "type": "string" },
     "telefono": { "type": "string" },
-    "interes": { "type": "string" }
+    "interes": { "type": "string" },
+    "meta": {
+      "type": "object",
+      "properties": {
+        "componente_id": { "type": "string" },
+        "componente_version": { "type": "string" },
+        "modelo_ref": { "type": ["string", "null"] },
+        "requiere_revision_humana": { "type": "boolean" },
+        "tiempo_respuesta_ms": { "type": ["integer", "null"] },
+        "status_proceso": { "type": "string" }
+      },
+      "required": [
+        "componente_id",
+        "componente_version",
+        "modelo_ref",
+        "requiere_revision_humana",
+        "tiempo_respuesta_ms",
+        "status_proceso"
+      ],
+      "additionalProperties": false
+    }
   },
-  "required": ["nombre", "email", "telefono", "interes"],
+  "required": ["nombre", "email", "telefono", "interes", "meta"],
   "additionalProperties": false
 }
