@@ -56,3 +56,10 @@ Este acuerdo es estrictamente provisional. El Runtime no iniciará operaciones r
 2. El despliegue de colas de mensajería durables (ej. Redis/RabbitMQ) para evitar pérdidas de datos en caídas.
 3. El endpoint oficial para recibir el Webhook callback e implementar firmas digitales HMAC o mTLS en la comunicación saliente.
 4. La política de persistencia operacional: definir tiempos de retención y purga de PII extraída.
+
+### ⚠️ ADVERTENCIA DE INFRAESTRUCTURA: PROCESAMIENTO ASÍNCRONO NO DURABLE
+De acuerdo con las restricciones validadas en la auditoría arquitectónica, se deja constancia explícita de lo siguiente:
+1. El Runtime utiliza `BackgroundTasks` en memoria volátil local para procesar las solicitudes en segundo plano.
+2. NO existe una cola de mensajería persistente o durable (como Redis, RabbitMQ, Celery, SQS o Kafka) implementada en esta fase.
+3. Si el proceso del servidor experimenta un reinicio forzado, falla crítica o caída del sistema inmediatamente después de responder el código `HTTP 202`, la tarea encolada se perderá de forma permanente.
+4. Este mecanismo es un control local válido única y estrictamente para la fase de MVP o prototipo de evaluación. Queda prohibido su uso en producción a gran escala sin antes acordar bilateralmente el despliegue de una cola persistente de grado industrial.
