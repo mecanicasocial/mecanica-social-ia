@@ -110,3 +110,18 @@ def test_intake_bloqueo_por_rate_limiting():
     response_bloqueada = client.post("/v1/intake", json=payload, headers=headers)
     assert response_bloqueada.status_code == 429
     assert "Tasa de solicitudes excedida" in response_bloqueada.json()["detail"]
+
+def test_coherencia_contractual_del_fallback_degradado():
+    """HITO SANEAMIENTO P21: Valida que el payload del fallback pase la aduana del JSON Schema."""
+    import json, jsonschema
+    from app.api import ejecutar_fallback_contingencia
+    from pydantic import BaseModel
+    class MockPayload(BaseModel):
+        solicitud_id: str = "test-fallback-id"
+        programa_ref: str = "PRG-42"
+        texto_formulario: str = "Postulacion de prueba"
+    with open("data/schemas/int-001-output.schema.json", "r", encoding="utf-8") as f:
+        schema_salida = json.load(f)
+    objeto_degradado = ejecutar_fallback_contingencia(MockPayload(), "Simulated LLM Timeout Error", 150)
+    # Si el objeto degradado no cumple las reglas, esta línea lanzará un ValidationError rompiendo el test
+    jsonschema.validate(instance=objeto_degradado, schema=schema_salida)
