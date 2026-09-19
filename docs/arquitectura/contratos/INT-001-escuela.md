@@ -90,3 +90,10 @@ Escuela Request -> [POST /v1/intake] -> Valida Entrada Pydantic
                       ├──> [Aceptación HTTP] -> int-001-intake-response.schema.json -> HTTP 202 Accepted
                       │
                       └──> [BackgroundTask] -> Inferencia de IA -> int-001-output.schema.json -> Webhook
+
+### 📊 7. Estado Oficial de Madurez y Gobernanza de la Integración
+De acuerdo con las resoluciones obligatorias de la auditoría técnica de gobernanza, se ratifica la clasificación semántica estricta de los estados de integración del repositorio:
+*   **CONTRATO INT-001:** `Provisional` — El runtime técnico se encuentra completamente implementado en el código y sus pruebas automatizadas pasan al 100%; sin embargo, su validez jurídica y operativa permanece estrictamente pendiente de confirmación bilateral con Mecánica Social Escuela.
+*   **CONTRATO INT-002:** `Propuesto` — Fase de diseño preliminar de arquitectura; sin desarrollo de software ni endpoints asociados en esta etapa.
+
+Queda estrictamente prohibido marcar o documentar estas integraciones como 'Validada', 'Operativa' o 'Productiva' dentro de cualquier archivo del sistema (`integraciones.md`, `gobernanza.md`, etc.) hasta que exista evidencia explícita y una autorización formal emitida por las autoridades de la Escuela.
