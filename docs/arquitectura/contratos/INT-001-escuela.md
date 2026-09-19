@@ -63,3 +63,10 @@ De acuerdo con las restricciones validadas en la auditoría arquitectónica, se 
 2. NO existe una cola de mensajería persistente o durable (como Redis, RabbitMQ, Celery, SQS o Kafka) implementada en esta fase.
 3. Si el proceso del servidor experimenta un reinicio forzado, falla crítica o caída del sistema inmediatamente después de responder el código `HTTP 202`, la tarea encolada se perderá de forma permanente.
 4. Este mecanismo es un control local válido única y estrictamente para la fase de MVP o prototipo de evaluación. Queda prohibido su uso en producción a gran escala sin antes acordar bilateralmente el despliegue de una cola persistente de grado industrial.
+
+### ⚠️ ADVERTENCIA DE RESILIENCIA: CIRCUIT BREAKER LOCAL POR INSTANCIA
+De acuerdo con los criterios de validación de la arquitectura de resiliencia, se hace explícito que:
+1. La máquina de estados del `IA_CircuitBreaker` opera bajo un aislamiento estricto en la memoria RAM del proceso local.
+2. Este disyuntor perimetral constituye un mecanismo local por instancia; NO es un sistema de control distribuido ni comparte su estado a través de la red.
+3. En escenarios de escalamiento distribuido con múltiples réplicas o instancias activas en paralelo (ej. API-1 y API-2), cada contenedor evaluará de forma independiente sus umbrales de fallo sin sincronizar los cambios de estado (CLOSED/OPEN) de forma centralizada.
+4. Se clasifica formalmente como una implementación correcta y suficiente para la fase de MVP local, requiriendo el uso de tecnologías de almacenamiento compartido (como Redis) en caso de una migración futura hacia una topología de producción distribuida masiva.
