@@ -3,28 +3,11 @@
   "title": "IntakeOutputContract",
   "type": "object",
   "properties": {
-    "solicitud_id": { "type": "string" },
-    "status": { "type": "string" },
-    "meta": {
-      "type": "object",
-      "properties": {
-        "componente_id": { "type": "string" },
-        "componente_version": { "type": "string" },
-        "modelo_ref": { "type": ["string", "null"] },
-        "requiere_revision_humana": { "type": "boolean" },
-        "status_proceso": { "type": "string" },
-        "tiempo_respuesta_ms": { "type": ["integer", "null"] }
-      },
-      "required": [
-        "componente_id",
-        "componente_version",
-        "modelo_ref",
-        "requiere_revision_humana",
-        "status_proceso"
-      ],
-      "additionalProperties": false
-    }
+    "nombre": { "type": "string" },
+    "email": { "type": "string" },
+    "telefono": { "type": "string" },
+    "interes": { "type": "string" }
   },
-  "required": ["solicitud_id", "status", "meta"],
+  "required": ["nombre", "email", "telefono", "interes"],
   "additionalProperties": false
 }
