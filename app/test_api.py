@@ -6,7 +6,9 @@ from app.api import app, disyuntor_ia, limitador_trafico
 
 load_dotenv()
 client = TestClient(app)
-VALID_API_KEY = os.getenv("API_KEY_ESCUELA_TOKEN", "fallback_empty_for_testing")
+VALID_API_KEY = os.getenv("API_KEY_ESCUELA_TOKEN", "ms_ia_secure_token_int_001_env_secured")
+import os
+os.environ["API_KEY_ESCUELA_TOKEN"] = VALID_API_KEY
 
 def setup_function():
     disyuntor_ia.state = "CLOSED"
