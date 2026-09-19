@@ -105,3 +105,14 @@ def test_intake_bloqueo_por_rate_limiting():
     response_bloqueada = client.post("/v1/intake", json=payload, headers=headers)
     assert response_bloqueada.status_code == 429
     assert "Tasa de solicitudes excedida" in response_bloqueada.json()["detail"]
+
+def test_sincronizacion_json_schema_con_pydantic():
+    """HITO SANEAMIENTO P2: Valida programáticamente que el JSON Schema contractual calce con Pydantic."""
+    import json
+    with open("data/schemas/int-001-solicitud-formacion.schema.json", "r", encoding="utf-8") as f:
+        schema_fisico = json.load(f)
+    propiedades_schema = schema_fisico.get("properties", {}).keys()
+    from app.api import SolicitudFormacionInput
+    propiedades_pydantic = SolicitudFormacionInput.model_fields.keys()
+    for campo in propiedades_schema:
+        assert campo in propiedades_pydantic, f"El campo {campo} del contrato JSON no existe en el codigo de la API."
