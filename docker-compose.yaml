@@ -1,0 +1,42 @@
+version: '3.8'
+
+# ==============================================================================
+# ORQUESTRACIÓN DE CONTENEDORES LOCALES (MVP / EVALUACIÓN CONTRATO INT-001)
+# ==============================================================================
+services:
+  # 1. El Runtime del Servidor Web (API REST Asíncrona)
+  api-runtime:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ms_api_runtime_container
+    ports:
+      - "8000:8000"
+    environment:
+      - AMBIENTE=development
+      - API_KEY_ESCUELA_TOKEN=ms_ia_secure_token_int_001_env_secured
+      - MS_IA_MODEL_API_KEY=mock_local_secret_key
+      # Apuntamos el cliente hacia el nombre del contenedor vecino en la red interna
+      - ESCUELA_WEBHOOK_URL=http://localhost:8001/webhooks/escuela-intake
+    volumes:
+      - ./data:/app/data
+    depends_on:
+      - mock-provider-ia
+    networks:
+      - red-mecanica-social
+
+  # 2. El Proveedor de IA Simulado (Mock de Evaluación No Productivo)
+  mock-provider-ia:
+    image: python:3.14-slim
+    container_name: ms_mock_ia_container
+    command: python3 -m http.server 8000
+    volumes:
+      - ./data/samples:/app/samples
+    working_dir: /app
+    networks:
+      - red-mecanica-social
+
+# Red interna privada para permitir la comunicación bilateral entre contenedores
+networks:
+  red-mecanica-social:
+    driver: bridge
