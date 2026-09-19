@@ -192,3 +192,18 @@ Cambios en archivos críticos → Siempre (LICENSE, GOVERNANCE, etc.) Nuevo prom
 Para contribuciones: Ver `CONTRIBUTING.md`
 Para incidentes: Ver `SECURITY.md` y `CODE_OF_CONDUCT.md`
 
+
+## 🛡️ Límites Operacionales y Arquitectura del Runtime (Fase MVP Local)
+De acuerdo con las directrices validadas en la auditoría técnica del repositorio, se establece formalmente la clasificación y el alcance de las capacidades implementadas en el servidor web actual para el Contrato INT-001:
+
+1. **Control de Tráfico (Rate Limiting = LOCAL):**
+   * El componente `PerimetralRateLimiter` opera restringido a la memoria RAM volátil de la instancia actual a través del diccionario `historial_consumos`.
+   * Los contadores acumulados se reinician con el proceso del servidor y operan de forma independiente por contenedor. No constituye un mecanismo distribuido (requiere Redis para producción masiva).
+
+2. **Tolerancia a Fallos (Circuit Breaker = LOCAL):**
+   * La máquina de estados del disyuntor perimetral (`IA_CircuitBreaker`) aísla caídas del proveedor simulado basándose estrictamente en variables locales de memoria (`self.state`).
+   * En escenarios de escalamiento horizontal con múltiples réplicas en paralelo, cada réplica evaluará de forma aislada sus umbrales de error, considerándose un control local suficiente para el MVP.
+
+3. **Procesamiento del Pipeline (BackgroundTasks = NO DURABLE):**
+   * El desacoplamiento asíncronamente implementado se ejecuta mediante las tareas en segundo plano de FastAPI en memoria volátil.
+   * Al carecer de una cola de mensajería persistente durable (como RabbitMQ o Celery), si el contenedor se apaga o reinicia forzadamente inmediatamente después de entregar una respuesta HTTP 202, la tarea encolada se perderá de forma permanente. Su uso operativo está limitado a la simulación y prototipado experimental.
