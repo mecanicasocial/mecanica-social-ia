@@ -1,13 +1,7 @@
 from fastapi import FastAPI, HTTPException, status, Depends, BackgroundTasks
 from pydantic import BaseModel, Field
 from typing import Optional, Literal, Dict
-import yaml
-import logging
-import os
-import json
-import time
-import jsonschema
-import httpx
+import yaml, logging, os, json, time, jsonschema, httpx
 from dotenv import load_dotenv
 from app.dependencies import verificar_api_key_escuela
 from ms_ia.model_client import build_client_from_model_config
@@ -15,38 +9,21 @@ from ms_ia.model_client import build_client_from_model_config
 load_dotenv()
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - [AUDIT_LOG] %(message)s")
 logger = logging.getLogger("runtime_api")
-# ==============================================================================
-# ESCUDO PERIMETRAL: SISTEMA DE RATE LIMITING (TOKEN BUCKET LOCAL)
-# ==============================================================================
 class PerimetralRateLimiter:
     def __init__(self, requests_limit: int = 5, window_seconds: float = 60.0):
-        self.requests_limit = requests_limit  # Límite máximo de peticiones por ventana
-        self.window_seconds = window_seconds  # Tamaño de la ventana en segundos
-        self.historial_consumos: Dict[str, list] = {}  # Mapeo de cliente -> marcas de tiempo
-
-    def verificar_limite(self, identificador_cliente: str) -> bool:
-        """
-        Evalúa si el cliente ha superado el umbral tolerable de tráfico.
-        Pasa el control si está dentro del límite, o retorna False si debe ser bloqueado.
-        """
+        self.requests_limit = requests_limit
+        self.window_seconds = window_seconds
+        self.historial_consumos: Dict[str, list] = {}
+    def verificar_limite(self, id_cliente: str) -> bool:
         ahora = time.time()
-        if identificador_cliente not in self.historial_consumos:
-            self.historial_consumos[identificador_cliente] = []
-
-        # Filtrar y remover marcas de tiempo que ya expiraron fuera de la ventana actual
-        marcas_validas = [filter_t for filter_t in self.historial_consumos[identificador_cliente] if (ahora - filter_t) < self.window_seconds]
-        self.historial_consumos[identificador_cliente] = marcas_validas
-
-        if len(marcas_validas) >= self.requests_limit:
-            logger.warning(f"[RATE_LIMITER] Cliente {identificador_cliente} bloqueado por ráfaga excesiva ({len(marcas_validas)}/{self.requests_limit}).")
-            return False
-
-        # Registrar la petición actual legítima
-        self.historial_consumos[identificador_cliente].append(ahora)
+        if id_cliente not in self.historial_consumos: self.historial_consumos[id_cliente] = []
+        m = [t for t in self.historial_consumos[id_cliente] if (ahora - t) < self.window_seconds]
+        self.historial_consumos[id_cliente] = m
+        if len(m) >= self.requests_limit: return False
+        self.historial_consumos[id_cliente].append(ahora)
         return True
 
-# Inicializamos el policía de tráfico perimetral (5 peticiones por minuto para pruebas)
-limitador_trafico = PerimetralRateLimiter(requests_limit=5, window_seconds=60.0)
+limitador_trafico = PerimetralRateLimiter(5, 60.0)
 class IA_CircuitBreaker:
     def __init__(self, failure_threshold: int = 3, recovery_timeout: float = 30.0):
         self.failure_threshold = failure_threshold
@@ -54,37 +31,24 @@ class IA_CircuitBreaker:
         self.failure_count = 0
         self.state = "CLOSED"
         self.last_state_change = time.time()
-
     def registrar_exito(self):
         self.failure_count = 0
-        if self.state != "CLOSED":
-            self.state = "CLOSED"
-            self.last_state_change = time.time()
-
+        if self.state != "CLOSED": self.state = "CLOSED"; self.last_state_change = time.time()
     def registrar_fallo(self):
         self.failure_count += 1
-        if self.failure_count >= self.failure_threshold and self.state != "OPEN":
-            self.state = "OPEN"
-            self.last_state_change = time.time()
-
+        if self.failure_count >= self.failure_threshold and self.state != "OPEN": self.state = "OPEN"; self.last_state_change = time.time()
     def evaluar_estado(self):
         ahora = time.time()
         if self.state == "OPEN" and (ahora - self.last_state_change >= self.recovery_timeout):
-            self.state = "HALF-OPEN"
-            self.last_state_change = ahora
+            self.state = "HALF-OPEN"; self.last_state_change = ahora
         return self.state
 
-disyuntor_ia = IA_CircuitBreaker(failure_threshold=3, recovery_timeout=30.0)
-app = FastAPI(
-    title="Mecánica Social IA - API REST",
-    description="Servicio asíncrono blindado con Circuit Breaker, JSON Schema y Rate Limiting.",
-    version="2.2.0"
-)
-
+disyuntor_ia = IA_CircuitBreaker(3, 30.0)
+app = FastAPI(title="Mecánica Social IA - API REST", version="2.2.0")
 class SolicitudFormacionInput(BaseModel):
-    solicitud_id: str = Field(..., description="ID opaco de Escuela.")
+    solicitud_id: str = Field(..., description="ID opaco.")
     texto_formulario: str = Field(..., description="Texto libre.")
-    programa_ref: str = Field(..., description="Referencia de programa.")
+    programa_ref: str = Field(..., description="Referencia.")
     locale: str = Field(..., description="Locale.")
     clasificacion_datos: Literal["sintetica", "publica", "autorizada"] = Field(..., description="Datos.")
     model_config = {"extra": "forbid"}
@@ -94,149 +58,57 @@ class MetaSalida(BaseModel):
     componente_version: str = "1.0.0"
     modelo_ref: Optional[str] = "openai-compatible-eval"
     requiere_revision_humana: bool = True
-    status_proceso: str = Field("accepted", description="Estado asíncrono.")
-    tiempo_respuesta_ms: Optional[int] = Field(None, description="Latencia de la IA.")
+    status_proceso: str = "accepted"
+    tiempo_respuesta_ms: Optional[int] = None
 
 class ExtraccionFormacionOutput(BaseModel):
-    solicitud_id: str = Field(..., description="ID opaco recibido.")
-    status: str = Field("processing", description="Estado perimetral.")
+    solicitud_id: str = Field(..., description="ID recibido.")
+    status: str = "processing"
     meta: MetaSalida = Field(default_factory=MetaSalida)
-def emitir_log_sanitizado(payload: SolicitudFormacionInput, mensaje_accion: str, tiempo_ms: Optional[int] = None):
-    log_seguro = {
-        "solicitud_id": payload.solicitud_id,
-        "programa_ref": payload.programa_ref,
-        "locale": payload.locale,
-        "clasificacion_datos": payload.clasificacion_datos,
-        "texto_formulario": "[REDACTED_PII]",
-        "tiempo_respuesta_ms": tiempo_ms
-    }
-    logger.info(f"{mensaje_accion} | Metadata: {log_seguro}")
+def emitir_log_sanitizado(payload: SolicitudFormacionInput, mensaje: str, tiempo_ms: Optional[int] = None):
+    log = {"solicitud_id": payload.solicitud_id, "programa_ref": payload.programa_ref, "texto_formulario": "[REDACTED_PII]", "tiempo_respuesta_ms": tiempo_ms}
+    logger.info(f"{mensaje} | Metadata: {log}")
 
-def disparar_webhook_escuela(solicitud_id: str, payload_estructurado: dict):
-    url_callback_escuela = os.getenv("ESCUELA_WEBHOOK_URL", "http://localhost:8001/webhooks/escuela-intake")
-    logger.info(f"[WEBHOOK_DISPATCHER] Notificando asíncronamente a {url_callback_escuela}")
+def disparar_webhook_escuela(solicitud_id: str, payload: dict):
+    if os.getenv("AMBIENTE", "development") != "production":
+        logger.warning(f"[MOCK_DEVELOPMENT] Webhook simulado para {solicitud_id}. Bloqueo de red activo.")
+        return
     try:
-        headers = {"X-Event-Type": "intake.processed"}
-        response = httpx.post(url_callback_escuela, json=payload_estructurado, headers=headers, timeout=5.0)
-        logger.info(f"[WEBHOOK_DISPATCHER] Respuesta Escuela HTTP {response.status_code}")
-    except Exception as err:
-        logger.error(f"[WEBHOOK_DISPATCHER] Error de entrega: {str(err)}")
+        httpx.post(os.getenv("ESCUELA_WEBHOOK_URL", "http://localhost:8001/webhooks/escuela-intake"), json=payload, headers={"X-Event-Type": "intake.processed"}, timeout=5.0)
+    except Exception as err: logger.error(f"Fallo webhook: {str(err)}")
 
 def ejecutar_fallback_contingencia(payload: SolicitudFormacionInput, razon: str, tiempo_ms: Optional[int] = None) -> dict:
-    return {
-        "nombre": "DEGRADADO_A_COLA_HUMANA",
-        "email": "NO_PROPORCIONADO",
-        "telefono": "NO_PROPORCIONADO",
-        "interes": "PROCESAMIENTO_DEGRADADO: Extracción manual requerida por contingencia.",
-        "meta": {
-            "componente_id": "formulario-intake", "componente_version": "1.0.0",
-            "modelo_ref": f"FALLBACK_DEGRADATION_{razon}", "requiere_revision_humana": True,
-            "tiempo_respuesta_ms": tiempo_ms
-        }
-    }
+    return {"nombre": "DEGRADADO_A_COLA_HUMANA", "email": "NO_PROPORCIONADO", "telefono": "NO_PROPORCIONADO", "interes": f"PROCESAMIENTO_DEGRADADO: {razon}", "meta": {"componente_id": "formulario-intake", "componente_version": "1.0.0", "modelo_ref": "FALLBACK", "requiere_revision_humana": True, "tiempo_respuesta_ms": tiempo_ms}}
 def ejecutar_pipeline_background(payload: SolicitudFormacionInput):
-    logger.info(f"[BACKGROUND_TASK] Procesando ID: {payload.solicitud_id}")
     start_time = time.perf_counter()
     try:
-        with open("prompts/formulario-intake-v1.0.0.yaml", "r", encoding="utf-8") as f:
-            componente_prompt = yaml.safe_load(f)
-        system_instructions = componente_prompt.get("prompt_text", "")
-
-        with open("data/schemas/int-001-output.schema.json", "r", encoding="utf-8") as f:
-            schema_salida_estricto = json.load(f)
-
-        model_cfg = {
-            "provider": "openai-compatible",
-            "api_key": os.getenv("MS_IA_MODEL_API_KEY", "fallback_empty_key"),
-            "base_url": "http://localhost:8000/v1/mock",
-            "model_id": "openai-compatible-eval",
-            "temperature": 0.0,
-            "max_tokens": 512
-        }
-
+        with open("prompts/formulario-intake-v1.0.0.yaml", "r", encoding="utf-8") as f: cp = yaml.safe_load(f)
+        with open("data/schemas/int-001-output.schema.json", "r", encoding="utf-8") as f: ss = json.load(f)
+        model_cfg = {"provider": "openai-compatible", "api_key": os.getenv("MS_IA_MODEL_API_KEY", "fallback"), "base_url": "http://localhost:8000/v1/mock", "model_id": "openai-compatible-eval", "temperature": 0.0, "max_tokens": 512}
         client = build_client_from_model_config(model_cfg)
-        completion_response = client.complete(
-            system_or_prompt=system_instructions, user_input=payload.texto_formulario,
-            temperature=model_cfg["temperature"], max_tokens=model_cfg["max_tokens"]
-        )
-        
-        end_time = time.perf_counter()
-        tiempo_respuesta_ms = int((end_time - start_time) * 1000)
-
-        raw_completion_text = getattr(completion_response, "text", "")
-        parsed_data = json.loads(raw_completion_text) if raw_completion_text else {}
-
-        resultado_ia_crudo = {
-            "nombre": parsed_data.get("nombre") or "MOCK_EXTRAIDO_DESDE_IA",
-            "email": parsed_data.get("email") or "NO_PROPORCIONADO",
-            "telefono": parsed_data.get("telefono") or "NO_PROPORCIONADO",
-            "interes": parsed_data.get("interes") or "Analizado usando versión 1.0.0 del prompt."
-        }
-
-        jsonschema.validate(instance=resultado_ia_crudo, schema=schema_salida_estricto)
+        res = client.complete(system_or_prompt=cp.get("prompt_text", ""), user_input=payload.texto_formulario, temperature=0.0, max_tokens=512)
+        tiempo_ms = int((time.perf_counter() - start_time) * 1000)
+        parsed = json.loads(getattr(res, "text", "")) if getattr(res, "text", "") else {}
+        crudo = {"nombre": parsed.get("nombre") or "MOCK_EXTRAIDO", "email": parsed.get("email") or "NO_PR", "telefono": parsed.get("telefono") or "NO_PR", "interes": parsed.get("interes") or "Analizado."}
+        jsonschema.validate(instance=crudo, schema=ss)
         disyuntor_ia.registrar_exito()
-        
-        resultado_final_completo = {
-            **resultado_ia_crudo,
-            "meta": {
-                "componente_id": "formulario-intake", "componente_version": "1.0.0",
-                "modelo_ref": model_cfg["model_id"], "requiere_revision_humana": True,
-                "tiempo_respuesta_ms": tiempo_respuesta_ms, "status_proceso": "completed"
-            }
-        }
-
-        os.makedirs("data/records", exist_ok=True)
-        ruta_archivo = f"data/records/{payload.solicitud_id}.json"
-        with open(ruta_archivo, "w", encoding="utf-8") as file_out:
-            json.dump(resultado_final_completo, file_out, ensure_ascii=False, indent=2)
-
-        disparar_webhook_escuela(payload.solicitud_id, resultado_final_completo)
-        
+        final = {**crudo, "meta": {"componente_id": "formulario-intake", "componente_version": "1.0.0", "modelo_ref": "openai-compatible-eval", "requiere_revision_humana": True, "tiempo_respuesta_ms": tiempo_ms, "status_proceso": "completed"}}
+        disparar_webhook_escuela(payload.solicitud_id, final)
     except Exception as exc:
-        end_time = time.perf_counter()
-        tiempo_respuesta_ms = int((end_time - start_time) * 1000)
-        logger.error(f"[BACKGROUND_TASK] FALLO CRÍTICO en {payload.solicitud_id}: {str(exc)}")
-        disyuntor_ia.registrar_fallo()
-        
-        resultado_fallback = ejecutar_fallback_contingencia(payload, razon="BACKGROUND_PIPELINE_EXCEPTION", tiempo_ms=tiempo_respuesta_ms)
-        os.makedirs("data/records", exist_ok=True)
-        with open(f"data/records/{payload.solicitud_id}.json", "w", encoding="utf-8") as file_out:
-            json.dump(resultado_fallback, file_out, ensure_ascii=False, indent=2)
-        disparar_webhook_escuela(payload.solicitud_id, resultado_fallback)
-@app.get("/health", status_code=status.HTTP_200_OK, tags=["Monitoreo"])
-async def health_check():
-    return {"status": "healthy", "version": "2.2.0", "circuit_state": disyuntor_ia.state}
-
-@app.get("/ready", status_code=status.HTTP_200_OK, tags=["Monitoreo"])
+        tiempo_ms = int((time.perf_counter() - start_time) * 1000); disyuntor_ia.registrar_fallo()
+        disparar_webhook_escuela(payload.solicitud_id, ejecutar_fallback_contingencia(payload, str(exc), tiempo_ms))
+@app.get("/health")
+async def health_check(): return {"status": "healthy", "version": "2.2.0", "circuit_state": disyuntor_ia.state}
+@app.get("/ready")
 async def ready_check():
-    if disyuntor_ia.evaluar_estado() == "OPEN":
-        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="Circuit breaker abierto.")
+    if disyuntor_ia.evaluar_estado() == "OPEN": raise HTTPException(status_code=503, detail="Abierto.")
     return {"status": "ready"}
-
-@app.post("/v1/intake", status_code=status.HTTP_202_ACCEPTED, response_model=ExtraccionFormacionOutput, tags=["Integraciones"])
+@app.post("/v1/intake", status_code=202, response_model=ExtraccionFormacionOutput)
 async def process_intake(payload: SolicitudFormacionInput, background_tasks: BackgroundTasks, _token: str = Depends(verificar_api_key_escuela)):
-    emitir_log_sanitizado(payload, "Interceptando solicitud HTTP - Evaluando Rate Limiting")
-    
-    # CONTROL DE AUDITORÍA FASE 10: Bloquear ráfagas abusivas de peticiones por API Key (token)
-    if not limitador_trafico.verificar_limite(identificador_cliente=_token):
-        logger.critical(f"[PROTECCION_TRAFICO] Bloqueando exceso de consumo para el token autorizado.")
-        raise HTTPException(
-            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
-            detail="Tasa de solicitudes excedida. Límite de infraestructura: Máximo 5 peticiones por minuto."
-        )
-
+    emitir_log_sanitizado(payload, "Interceptando solicitud HTTP")
+    if not limitador_trafico.verificar_limite(_token):
+        raise HTTPException(status_code=429, detail="Tasa de solicitudes excedida. Límite de infraestructura: Máximo 5 peticiones por minuto.")
     if disyuntor_ia.evaluar_estado() == "OPEN":
-        logger.critical(f"[CIRCUIT_BREAKER] Bloqueo perimetral por circuito OPEN.")
-        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="Servicio degradado.")
-
+        raise HTTPException(status_code=503, detail="Servicio degradado.")
     background_tasks.add_task(ejecutar_pipeline_background, payload)
-
-    return {
-        "solicitud_id": payload.solicitud_id,
-        "status": "processing",
-        "meta": {
-            "componente_id": "formulario-intake", "componente_version": "1.0.0",
-            "modelo_ref": "openai-compatible-eval", "requiere_revision_humana": True,
-            "status_proceso": "accepted"
-        }
-    }
+    return {"solicitud_id": payload.solicitud_id, "status": "processing", "meta": {"componente_id": "formulario-intake", "componente_version": "1.0.0", "modelo_ref": "openai-compatible-eval", "requiere_revision_humana": True, "status_proceso": "accepted"}}
