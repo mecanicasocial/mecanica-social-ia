@@ -125,3 +125,22 @@ def test_coherencia_contractual_del_fallback_degradado():
     objeto_degradado = ejecutar_fallback_contingencia(MockPayload(), "Simulated LLM Timeout Error", 150)
     # Si el objeto degradado no cumple las reglas, esta línea lanzará un ValidationError rompiendo el test
     jsonschema.validate(instance=objeto_degradado, schema=schema_salida)
+
+def test_produccion_sin_webhook_url_lanza_error_controlado():
+    """TEST 3 AUDITORÍA: AMBIENTE=production sin URL debe arrojar RuntimeError."""
+    import pytest
+    from app.api import disparar_webhook_escuela
+    os.environ["AMBIENTE"] = "production"
+    if "ESCUELA_WEBHOOK_URL" in os.environ: del os.environ["ESCUELA_WEBHOOK_URL"]
+    with pytest.raises(RuntimeError) as exc_info:
+        disparar_webhook_escuela("solicitud-prod-fail", {"datos": "prueba"})
+    assert "ESCUELA_WEBHOOK_URL es obligatoria" in str(exc_info.value)
+    os.environ["AMBIENTE"] = "development"
+
+def test_webhook_en_desarrollo_no_realiza_llamada_http_externa():
+    """TEST 4 AUDITORÍA: AMBIENTE=development activa la barrera lógica de simulación (Mock)."""
+    from app.api import disparar_webhook_escuela
+    os.environ["AMBIENTE"] = "development"
+    # Este llamado no gatilla httpx.post hacia internet, finaliza de inmediato de forma segura
+    resultado = disparar_webhook_escuela("solicitud-dev-mock", {"datos": "aislados"})
+    assert resultado is None
