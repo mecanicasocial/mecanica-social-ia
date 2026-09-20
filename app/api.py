@@ -1,3 +1,4 @@
+import json
 import contextlib
 import random
 import time
@@ -158,10 +159,19 @@ def ejecutar_pipeline_background(payload: SolicitudFormacionInput):
     try:
         if disyuntor_ia.evaluar_estado() == "OPEN":
             raise RuntimeError("Circuito de IA abierto de forma preventiva.")
-        final = ejecutar_fallback_contingencia(payload, "MOCK_LLM_DEGRADADO_AUTOMÁTICO", 10)
+                # Conexión real al cliente OpenAI compatible
+        from ms_ia.model_client import OpenAICompatibleClient
+        base_url_ia = "http://127.0.0.1:8001"
+        api_key_ia = os.getenv("MS_IA_MODEL_API_KEY", "mock_key")
+        model_id_ia = os.getenv("MS_IA_MODEL_ID", "fake-llm-advanced-7b")
+        client_ia = OpenAICompatibleClient(base_url=base_url_ia, api_key=api_key_ia, model_id=model_id_ia, timeout_sec=5.0)
+        t_inicio = time.time()
+        resultado_ia = client_ia.complete(system_or_prompt="Extrae campos JSON", user_input=payload.texto_formulario)
+        tiempo_ms = int((time.time() - t_inicio) * 1000)
         disyuntor_ia.registrar_exito()
     except Exception as e:
         disyuntor_ia.registrar_fallo()
+        logger.error(f"🔴 [PIPELINE-EXC] Aborto por error: {str(e)}")
         final = ejecutar_fallback_contingencia(payload, str(e), 5)
     try:
         fecha_notif = time.strftime("%Y-%m-%d %H:%M:%S")
