@@ -188,3 +188,38 @@ def test_produccion_sin_notificacion_url_lanza_error_controlado_int002():
         disparar_notificacion_int002("solicitud-int002-fail", payload_resultado_mock, payload_meta_mock)
     assert "ESCUELA_NOTIFICACION_URL es obligatoria" in str(exc_info.value)
     os.environ["AMBIENTE"] = "development"
+
+def test_int002_secuencia_reintentos_ante_error_servidor(monkeypatch):
+    """TEST INT-002 AUDITORÍA: Valida de forma aislada que se ejecuten los 3 reintentos ante un HTTP 502."""
+    import httpx
+    import app.api
+    
+    # 1. Truco Profesional: Simulamos el paso del tiempo en 0 para que el test corra instantáneamente
+    monkeypatch.setattr(app.api.time, "sleep", lambda x: None)
+    
+    # 2. Truco Profesional: Interceptamos las llamadas de red y forzamos a que simulen un error 502 permanente
+    def mock_post(*args, **kwargs):
+        mock_resp = httpx.Response(status_code=502, request=httpx.Request("POST", args[0]))
+        raise httpx.HTTPStatusError("Bad Gateway de prueba", request=mock_resp.request, response=mock_resp)
+    monkeypatch.setattr(app.api.httpx, "post", mock_post)
+    
+    # 3. Preparamos un contador interno para verificar cuántas veces se gatillan las alertas del reintentador
+    logs_capturados = []
+    monkeypatch.setattr(app.api.logger, "warning", lambda msg: logs_capturados.append(msg))
+    
+    payload_resultado_mock = {"nombre": "Andrea", "email": "andrea@email.cl", "telefono": "123", "interes": "IA"}
+    payload_meta_mock = {
+        "componente_id": "test", "componente_version": "1.0.0", "modelo_ref": "test",
+        "requiere_revision_humana": True, "tiempo_respuesta_ms": 100, "status_proceso": "completed"
+    }
+    
+    # Ejecutamos la función de red saliente
+    os.environ["AMBIENTE"] = "production"
+    os.environ["ESCUELA_NOTIFICACION_URL"] = "http://endpoint-error-502-simulado/webhook"
+    
+    app.api.disparar_notificacion_int002("solicitud-retry-test", payload_resultado_mock, payload_meta_mock)
+    
+    # 4. Verificación de Gobernanza: Evaluamos que se hayan capturado exactamente los intentos fallidos
+    fallos_totales = [log for log in logs_capturados if "fallido con error" in log]
+    assert len(fallos_totales) == 4, f"Se esperaban 4 intentos fallidos (Intento 0 + 3 reintentos), pero se contaron {len(fallos_totales)}"
+    os.environ["AMBIENTE"] = "development"
