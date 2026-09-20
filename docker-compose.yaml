@@ -8,12 +8,12 @@ services:
     ports:
       - "8000:8000"
     environment:
-      - PYTHONPATH=src
-      - AMBIENTE=development
-      - API_KEY_ESCUELA_TOKEN=ms_ia_secure_token_int_001_env_secured
-      - MS_IA_MODEL_API_KEY=mock_local_secret_key
-      - ESCUELA_WEBHOOK_URL=http://mock-provider-ia:8001/webhooks/escuela-intake
-      - ESCUELA_NOTIFICACION_URL=http://mock-provider-ia:8001/webhooks/escuela-output
+      - PYTHONPATH=${PYTHONPATH}
+      - AMBIENTE=${AMBIENTE}
+      - API_KEY_ESCUELA_TOKEN=${API_KEY_ESCUELA_TOKEN}
+      - MS_IA_MODEL_API_KEY=${MS_IA_MODEL_API_KEY}
+      - ESCUELA_WEBHOOK_URL=${ESCUELA_WEBHOOK_URL}
+      - ESCUELA_NOTIFICACION_URL=${ESCUELA_NOTIFICACION_URL}
     volumes:
       - ./data:/app/data
       - ./docs:/app/docs
