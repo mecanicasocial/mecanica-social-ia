@@ -93,6 +93,46 @@ def disparar_webhook_escuela(solicitud_id: str, payload_estructurado: dict):
 
 def ejecutar_fallback_contingencia(payload: SolicitudFormacionInput, razon: str, tiempo_ms: Optional[int] = None) -> dict:
     return {"nombre": "DEGRADADO_A_COLA_HUMANA", "email": "NO_PROPORCIONADO", "telefono": "NO_PROPORCIONADO", "interes": f"PROCESAMIENTO_DEGRADADO: {razon}", "meta": {"componente_id": "formulario-intake", "componente_version": "1.0.0", "modelo_ref": "FALLBACK", "requiere_revision_humana": True, "tiempo_respuesta_ms": tiempo_ms, "status_proceso": "degraded"}}
+def disparar_notificacion_int002(solicitud_id: str, resultado_ia: dict, meta_ia: dict):
+    """Implementación física de red del Contrato INT-002 para notificar resultados a la Escuela."""
+    ambiente_actual = os.getenv("AMBIENTE", "development")
+    url_notificacion = os.getenv("ESCUELA_NOTIFICACION_URL")
+    
+    payload_notificacion = {
+        "solicitud_id": solicitud_id,
+        "resultado": resultado_ia,
+        "meta": meta_ia
+    }
+    
+    # Validamos preventivamente contra el nuevo JSON Schema de INT-002 antes de transmitir
+    try:
+        with open("data/schemas/int-002-output.schema.json", "r", encoding="utf-8") as f:
+            schema_int002 = json.load(f)
+        jsonschema.validate(instance=payload_notificacion, schema=schema_int002)
+        logger.info(f"[INT-002-VALIDATOR] Payload de notificacion validado con exito para {solicitud_id}")
+    except Exception as s_err:
+        logger.error(f"[INT-002-VALIDATOR] Error de consistencia interna en el esquema de notificacion: {str(s_err)}")
+        return
+
+    # Bloqueo Perimetral Mandatorio de Auditoría en Producción
+    if ambiente_actual == "production" and not url_notificacion:
+        logger.critical("[INT-002-SEGURIDAD] INTEGRACIÓN BLOQUEADA: ESCUELA_NOTIFICACION_URL es obligatoria en produccion.")
+        raise RuntimeError("ESCUELA_NOTIFICACION_URL es obligatoria en produccion")
+        
+    if ambiente_actual != "production":
+        logger.warning(f"[MOCK_DEVELOPMENT] Barrera INT-002 activa para {solicitud_id}. Simulacion de Notificacion local.")
+        logger.info(f"[MOCK_DEVELOPMENT] Payload INT-002: {json.dumps(payload_notificacion)}")
+        return
+
+    logger.info(f"[INT-002-DISPATCHER] Despachando notificacion INT-002 hacia {url_notificacion}")
+    try:
+        headers = {"X-Event-Type": "inference.completed"}
+        response = httpx.post(url_notificacion, json=payload_notificacion, headers=headers, timeout=5.0)
+        logger.info(f"[INT-002-DISPATCHER] Respuesta Escuela INT-002 HTTP {response.status_code}")
+    except Exception as err:
+        logger.error(f"[INT-002-DISPATCHER] Error de entrega en notificacion INT-002: {str(err)}")
+
+
 def ejecutar_pipeline_background(payload: SolicitudFormacionInput):
     start_time = time.perf_counter()
     try:
