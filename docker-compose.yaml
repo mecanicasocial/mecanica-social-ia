@@ -18,6 +18,7 @@ services:
       - MS_IA_MODEL_API_KEY=mock_local_secret_key
       # URL obligatoria: apunta de forma segura al contenedor del mock vecino en la red interna
       - ESCUELA_WEBHOOK_URL=http://mock-provider-ia:8001/webhooks/escuela-intake
+      - ESCUELA_NOTIFICACION_URL=http://mock-provider-ia:8001/webhooks/escuela-output
     volumes:
       - ./data:/app/data
       - ./docs:/app/docs
