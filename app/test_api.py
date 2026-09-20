@@ -144,3 +144,29 @@ def test_webhook_en_desarrollo_no_realiza_llamada_http_externa():
     # Este llamado no gatilla httpx.post hacia internet, finaliza de inmediato de forma segura
     resultado = disparar_webhook_escuela("solicitud-dev-mock", {"datos": "aislados"})
     assert resultado is None
+
+def test_int002_notificacion_esquema_valido():
+    """TEST INT-002: Verifica que un payload estructurado de notificacion sea parseado con exito."""
+    import json, jsonschema
+    with open("data/schemas/int-002-output.schema.json", "r", encoding="utf-8") as f:
+        schema = json.load(f)
+    with open("data/samples/int-002-notificacion.sample.json", "r", encoding="utf-8") as f:
+        sample = json.load(f)
+    # No debe lanzar ninguna excepcion
+    jsonschema.validate(instance=sample, schema=schema)
+
+def test_int002_notificacion_bloqueo_por_campo_ausente():
+    """TEST INT-002: Comprueba que la aduana bloquee payloads si meta.status_proceso esta ausente."""
+    import json, jsonschema, pytest
+    with open("data/schemas/int-002-output.schema.json", "r", encoding="utf-8") as f:
+        schema = json.load(f)
+    with open("data/samples/int-002-notificacion.sample.json", "r", encoding="utf-8") as f:
+        sample = json.load(f)
+    
+    # Manipulamos de forma destructiva el objeto para simular un error del pipeline
+    if "status_proceso" in sample["meta"]:
+        del sample["meta"]["status_proceso"]
+        
+    with pytest.raises(jsonschema.exceptions.ValidationError) as exc_info:
+        jsonschema.validate(instance=sample, schema=schema)
+    assert "status_proceso" in str(exc_info.value)
