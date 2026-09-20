@@ -1,3 +1,5 @@
+import contextlib
+from app.database import inicializar_base_de_datos
 import random
 import time
 from fastapi import FastAPI, HTTPException, status, Depends, BackgroundTasks
