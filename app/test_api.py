@@ -223,3 +223,32 @@ def test_int002_secuencia_reintentos_ante_error_servidor(monkeypatch):
     fallos_totales = [log for log in logs_capturados if "fallido con error" in log]
     assert len(fallos_totales) == 4, f"Se esperaban 4 intentos fallidos (Intento 0 + 3 reintentos), pero se contaron {len(fallos_totales)}"
     os.environ["AMBIENTE"] = "development"
+
+def test_intake_guarda_solicitud_en_bd(tmp_path, monkeypatch):
+    """TEST REQUISITO AUDITORÍA: Valida de forma aislada que el insert impacte la BD real."""
+    import sqlite3
+    from app import database
+    from app.test_api import client, VALID_API_KEY
+    
+    # Redireccionamos a una BD temporal aislada para no ensuciar la real
+    monkeypatch.setattr(database, "DB_PATH", str(tmp_path / "test.db"))
+    database.inicializar_base_de_datos()
+
+    payload = {
+        "solicitud_id": "req_db_001",
+        "texto_formulario": "Soy Ana, ana@test.cl, +56911111111, quiero aprender soldadura.",
+        "programa_ref": "ref_ci_2026",
+        "locale": "es-CL",
+        "clasificacion_datos": "sintetica",
+    }
+    r = client.post("/v1/intake", json=payload, headers={"X-API-Key": VALID_API_KEY})
+    assert r.status_code == 202
+
+    con = sqlite3.connect(database.DB_PATH)
+    fila = con.execute(
+        "SELECT status_actual FROM solicitudes_intake WHERE solicitud_id = ?",
+        ("req_db_001",),
+    ).fetchone()
+    con.close()
+    assert fila is not None
+    assert fila[0] in ("processing", "completed", "degraded")

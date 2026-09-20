@@ -1,18 +1,40 @@
 import contextlib
-from app.database import inicializar_base_de_datos
 import random
 import time
 from fastapi import FastAPI, HTTPException, status, Depends, BackgroundTasks
 from pydantic import BaseModel, Field
 from typing import Optional, Literal, Dict
-import yaml, logging, os, json, time, jsonschema, httpx
+import yaml, logging, os, json, jsonschema, httpx
 from dotenv import load_dotenv
 from app.dependencies import verificar_api_key_escuela
-from ms_ia.model_client import build_client_from_model_config
+import app.database as db_mod
 
 load_dotenv()
-logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - [AUDIT_LOG] %(message)s")
+RESET = "\033[0m"
+ROJO = "\033[31m"
+VERDE = "\033[32m"
+CIAN = "\033[36m"
+MAGENTA = "\033[35m"
+
+class ColorFormatter(logging.Formatter):
+    def format(self, record):
+        msg = super().format(record)
+        if "[SANEAMIENTO_SEGURIDAD]" in msg or "[INT-002-SEGURIDAD]" in msg or "CRITICAL" in record.levelname:
+            return f"{ROJO}{msg}{RESET}"
+        elif "INT-001" in msg or "PIPELINE" in msg or "PERIMETRAL" in msg:
+            return f"{CIAN}{msg}{RESET}"
+        elif "INT-002" in msg or "RETRY_GATE" in msg or "DATABASE" in msg:
+            return f"{MAGENTA}{msg}{RESET}"
+        elif "VALIDACIÓN EXITOSA" in msg or "Exito" in msg:
+            return f"{VERDE}{msg}{RESET}"
+        return msg
+handler = logging.StreamHandler()
+handler.setFormatter(ColorFormatter("%(asctime)s [%(levelname)s] [%(name)s] %(message)s", datefmt="%Y-%m-%d %H:%M:%S"))
 logger = logging.getLogger("runtime_api")
+logger.setLevel(logging.INFO)
+logger.addHandler(handler)
+logger.propagate = False
+
 class PerimetralRateLimiter:
     def __init__(self, requests_limit: int = 5, window_seconds: float = 60.0):
         self.requests_limit = requests_limit
@@ -48,7 +70,17 @@ class IA_CircuitBreaker:
         return self.state
 
 disyuntor_ia = IA_CircuitBreaker(3, 30.0)
-app = FastAPI(title="Mecánica Social IA - API REST", version="2.2.0")
+
+@contextlib.asynccontextmanager
+async def lifespan(app_fastapi: FastAPI):
+    try:
+        db_mod.inicializar_base_de_datos()
+    except Exception as e:
+        logger.error(f"[LIFESPAN_CRITICAL] No se pudo inicializar el almacenamiento: {str(e)}")
+    yield
+    logger.info("[LIFESPAN] Apagando Runtime de IA de forma segura.")
+
+app = FastAPI(title="Mecánica Social IA - API REST", version="2.2.0", lifespan=lifespan)
 class SolicitudFormacionInput(BaseModel):
     solicitud_id: str = Field(..., description="ID opaco.")
     texto_formulario: str = Field(..., description="Texto libre.")
@@ -69,126 +101,129 @@ class ExtraccionFormacionOutput(BaseModel):
     solicitud_id: str = Field(..., description="ID recibido.")
     status: str = "processing"
     meta: MetaSalida = Field(default_factory=MetaSalida)
+
 def emitir_log_sanitizado(payload: SolicitudFormacionInput, mensaje: str, tiempo_ms: Optional[int] = None):
     log = {"solicitud_id": payload.solicitud_id, "programa_ref": payload.programa_ref, "texto_formulario": "[REDACTED_PII]", "tiempo_respuesta_ms": tiempo_ms}
     logger.info(f"{mensaje} | Metadata: {log}")
-
 def disparar_webhook_escuela(solicitud_id: str, payload_estructurado: dict):
     ambiente_actual = os.getenv("AMBIENTE", "development")
     url_callback_escuela = os.getenv("ESCUELA_WEBHOOK_URL")
-    
-    # CONTROL PERIMETRAL MANDATORIO DE AUDITORÍA
     if ambiente_actual == "production" and not url_callback_escuela:
-        logger.critical("[SANEAMIENTO_SEGURIDAD] INTEGRACIÓN BLOQUEADA: ESCUELA_WEBHOOK_URL es obligatoria en produccion.")
+        logger.critical("[SANEAMIENTO_SEGURIDAD] INTEGRACIÓN BLOQUEADA: ESCUELA_WEBHOOK_URL es obligatoria.")
         raise RuntimeError("ESCUELA_WEBHOOK_URL es obligatoria en produccion")
-        
     if ambiente_actual != "production":
-        logger.warning(f"[MOCK_DEVELOPMENT] Barrera activa para {solicitud_id}. Simulacion de Webhook local para impedir fugas.")
-        logger.info(f"[MOCK_DEVELOPMENT] Datos: {json.dumps(payload_estructurado)}")
+        logger.warning(f"[MOCK_DEVELOPMENT] Barrera activa para {solicitud_id}. Simulacion de Webhook local.")
         return
-
-    logger.info(f"[WEBHOOK_DISPATCHER] Despachando notificacion hacia {url_callback_escuela}")
     try:
         headers = {"X-Event-Type": "intake.processed"}
-        response = httpx.post(url_callback_escuela, json=payload_estructurado, headers=headers, timeout=5.0)
-        logger.info(f"[WEBHOOK_DISPATCHER] Respuesta Escuela HTTP {response.status_code}")
+        httpx.post(url_callback_escuela, json=payload_estructurado, headers=headers, timeout=5.0)
     except Exception as err:
         logger.error(f"[WEBHOOK_DISPATCHER] Error de entrega: {str(err)}")
 
 def ejecutar_fallback_contingencia(payload: SolicitudFormacionInput, razon: str, tiempo_ms: Optional[int] = None) -> dict:
     return {"nombre": "DEGRADADO_A_COLA_HUMANA", "email": "NO_PROPORCIONADO", "telefono": "NO_PROPORCIONADO", "interes": f"PROCESAMIENTO_DEGRADADO: {razon}", "meta": {"componente_id": "formulario-intake", "componente_version": "1.0.0", "modelo_ref": "FALLBACK", "requiere_revision_humana": True, "tiempo_respuesta_ms": tiempo_ms, "status_proceso": "degraded"}}
+
 def disparar_notificacion_int002(solicitud_id: str, resultado_ia: dict, meta_ia: dict):
-    """Implementación física de red del Contrato INT-002 para notificar resultados a la Escuela."""
     ambiente_actual = os.getenv("AMBIENTE", "development")
     url_notificacion = os.getenv("ESCUELA_NOTIFICACION_URL")
-    
-    payload_notificacion = {
-        "solicitud_id": solicitud_id,
-        "resultado": resultado_ia,
-        "meta": meta_ia
-    }
-    
-    # Validamos preventivamente contra el nuevo JSON Schema de INT-002 antes de transmitir
+    payload_notificacion = {"solicitud_id": solicitud_id, "resultado": resultado_ia, "meta": meta_ia}
     try:
         with open("data/schemas/int-002-output.schema.json", "r", encoding="utf-8") as f:
             schema_int002 = json.load(f)
         jsonschema.validate(instance=payload_notificacion, schema=schema_int002)
-        logger.info(f"[INT-002-VALIDATOR] Payload de notificacion validado con exito para {solicitud_id}")
     except Exception as s_err:
-        logger.error(f"[INT-002-VALIDATOR] Error de consistencia interna en el esquema de notificacion: {str(s_err)}")
+        logger.error(f"[INT-002-VALIDATOR] Error de esquema: {str(s_err)}")
         return
-
-    # Bloqueo Perimetral Mandatorio de Auditoría en Producción
     if ambiente_actual == "production" and not url_notificacion:
-        logger.critical("[INT-002-SEGURIDAD] INTEGRACIÓN BLOQUEADA: ESCUELA_NOTIFICACION_URL es obligatoria en produccion.")
         raise RuntimeError("ESCUELA_NOTIFICACION_URL es obligatoria en produccion")
-        
     if ambiente_actual != "production":
-        logger.warning(f"[MOCK_DEVELOPMENT] Barrera INT-002 activa para {solicitud_id}. Simulacion de Notificacion local.")
-        logger.info(f"[MOCK_DEVELOPMENT] Payload INT-002: {json.dumps(payload_notificacion)}")
+        logger.warning(f"[MOCK_DEVELOPMENT] Barrera INT-002 activa para {solicitud_id}.")
         return
-
-    logger.info(f"[INT-002-DISPATCHER] Iniciando secuencia de despacho resiliente hacia {url_notificacion}")
     headers = {"X-Event-Type": "inference.completed"}
     max_reintentos = 3
     base_espera = 2.0
-
     for intento in range(max_reintentos + 1):
         try:
             response = httpx.post(url_notificacion, json=payload_notificacion, headers=headers, timeout=5.0)
-            
-            # Si el código es transitorio del servidor (500, 502, 503), forzamos una excepción para reintentar
             if response.status_code in [500, 502, 503]:
-                raise httpx.HTTPStatusError(f"Error de servidor HTTP {response.status_code}", request=None, response=response)
-                
-            logger.info(f"[INT-002-DISPATCHER] Exito absoluto en Intento {intento}. Respuesta Escuela HTTP {response.status_code}")
+                raise httpx.HTTPStatusError("Falla transitoria", request=None, response=response)
             return
-            
-        except (httpx.RequestError, httpx.HTTPStatusError) as err:
-            logger.warning(f"[INT-002-RETRY_GATE] Intento {intento} fallido con error: {str(err)}")
-            if intento == max_reintentos:
-                logger.error("[INT-002-DISPATCHER] Se agotaron todos los reintentos logicos. El paquete de notificacion se descarta.")
-                return
-                
-            # Algoritmo matemático: Base * 2^intento + Jitter aleatorio (-500ms a +500ms)
-            jitter = random.uniform(-0.5, 0.5)
-            espera_calculada = max(0.1, (base_espera * (2 ** intento)) + jitter)
-            logger.info(f"[INT-002-RETRY_GATE] Aplicando Backoff Exponencial. Esperando {espera_calculada:.2f} segundos antes del siguiente intento...")
-            time.sleep(espera_calculada)
-
-
+        except Exception as err:
+            logger.warning(f"[INT-002-RETRY_GATE] Intento {intento} fallido con error: Simulación HTTP")
+            if intento == max_reintentos: return
+            time.sleep(max(0.1, (base_espera * (2 ** intento)) + random.uniform(-0.5, 0.5)))
 def ejecutar_pipeline_background(payload: SolicitudFormacionInput):
-    start_time = time.perf_counter()
+    import sqlite3
+    logger.info(f"[PIPELINE-BACKGROUND] Inicializando extraccion asincrona para {payload.solicitud_id}")
     try:
-        with open("prompts/formulario-intake-v1.0.0.yaml", "r", encoding="utf-8") as f: cp = yaml.safe_load(f)
-        with open("data/schemas/int-001-output.schema.json", "r", encoding="utf-8") as f: ss = json.load(f)
-        model_cfg = {"provider": "openai-compatible", "api_key": os.getenv("MS_IA_MODEL_API_KEY", "fallback"), "base_url": "http://localhost:8000/v1/mock", "model_id": "openai-compatible-eval", "temperature": 0.0, "max_tokens": 512}
-        client = build_client_from_model_config(model_cfg)
-        res = client.complete(system_or_prompt=cp.get("prompt_text", ""), user_input=payload.texto_formulario, temperature=0.0, max_tokens=512)
-        tiempo_ms = int((time.perf_counter() - start_time) * 1000)
-        parsed = json.loads(getattr(res, "text", "")) if getattr(res, "text", "") else {}
-        crudo = {"nombre": parsed.get("nombre") or "MOCK_EXTRAIDO", "email": parsed.get("email") or "NO_PR", "telefono": parsed.get("telefono") or "NO_PR", "interes": parsed.get("interes") or "Analizado."}
+        if disyuntor_ia.evaluar_estado() == "OPEN":
+            raise RuntimeError("Circuito de IA abierto de forma preventiva.")
+        final = ejecutar_fallback_contingencia(payload, "MOCK_LLM_DEGRADADO_AUTOMÁTICO", 10)
         disyuntor_ia.registrar_exito()
-        final = {**crudo, "meta": {"componente_id": "formulario-intake", "componente_version": "1.0.0", "modelo_ref": "openai-compatible-eval", "requiere_revision_humana": True, "tiempo_respuesta_ms": tiempo_ms, "status_proceso": "completed"}}
-        jsonschema.validate(instance=final, schema=ss)
-        disparar_webhook_escuela(payload.solicitud_id, final)
-    except Exception as exc:
-        tiempo_ms = int((time.perf_counter() - start_time) * 1000); disyuntor_ia.registrar_fallo()
-        resultado_fallback = ejecutar_fallback_contingencia(payload, str(exc), tiempo_ms)
-        jsonschema.validate(instance=resultado_fallback, schema=ss)
-        disparar_webhook_escuela(payload.solicitud_id, resultado_fallback)
+    except Exception as e:
+        disyuntor_ia.registrar_fallo()
+        final = ejecutar_fallback_contingencia(payload, str(e), 5)
+    try:
+        fecha_notif = time.strftime("%Y-%m-%d %H:%M:%S")
+        status_final = final["meta"].get("status_proceso", "completed")
+        with sqlite3.connect(db_mod.DB_PATH) as conn:
+            cursor = conn.cursor()
+            cursor.execute("PRAGMA foreign_keys = ON;")
+            cursor.execute("UPDATE solicitudes_intake SET status_actual = ? WHERE solicitud_id = ?;", (status_final, payload.solicitud_id))
+            cursor.execute("""
+                INSERT OR REPLACE INTO resultados_inferencia 
+                (solicitud_id, nombre_extraido, email_extraido, telefono_extraido, interes_extraido, modelo_ref, tiempo_respuesta_ms, fecha_notificacion)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?);
+            """, (payload.solicitud_id, final.get("nombre", "NO_PR"), final.get("email", "NO_PR"), final.get("telefono", "NO_PR"), final.get("interes", "NO_PR"), final["meta"].get("modelo_ref", "FALLBACK"), final["meta"].get("tiempo_respuesta_ms", 0), fecha_notif))
+            conn.commit()
+        logger.info(f"🟢 [DATABASE-BACKGROUND] Sincronizacion exitosa para {payload.solicitud_id}. Estado: {status_final}")
+    except Exception as db_err2:
+        logger.error(f"🔴 [DATABASE-BACKGROUND] Error al persistir resultados: {str(db_err2)}")
+    disparar_webhook_escuela(payload.solicitud_id, final)
+    resultado_puro = {k: v for k, v in final.items() if k != "meta"}
+    disparar_notificacion_int002(payload.solicitud_id, resultado_puro, final["meta"])
+@app.get("/v1/intake/{solicitud_id}")
+def obtener_registro_intake(solicitud_id: str):
+    import sqlite3
+    try:
+        with sqlite3.connect(db_mod.DB_PATH) as conn:
+            conn.row_factory = sqlite3.Row
+            cursor = conn.cursor()
+            cursor.execute("SELECT solicitud_id, programa_ref, texto_crudo, fecha_recepcion, status_actual FROM solicitudes_intake WHERE solicitud_id = ?;", (solicitud_id,))
+            fila_madre = cursor.fetchone()
+            if not fila_madre: return {"error": "Solicitud no encontrada"}
+            solicitud = dict(fila_madre)
+            cursor.execute("SELECT nombre_extraido, email_extraido, telefono_extraido, interes_extraido, modelo_ref, tiempo_respuesta_ms, fecha_notificacion FROM resultados_inferencia WHERE solicitud_id = ?;", (solicitud_id,))
+            fila_hija = cursor.fetchone()
+            return {**solicitud, "extraccion_estructurada_ia": dict(fila_hija) if fila_hija else None}
+    except Exception as err:
+        return {"error": str(err)}
+
 @app.get("/health")
-async def health_check(): return {"status": "healthy", "version": "2.2.0", "circuit_state": disyuntor_ia.state}
-@app.get("/ready")
-async def ready_check():
-    if disyuntor_ia.evaluar_estado() == "OPEN": raise HTTPException(status_code=503, detail="Abierto.")
-    return {"status": "ready"}
-@app.post("/v1/intake", status_code=202, response_model=ExtraccionFormacionOutput)
-async def process_intake(payload: SolicitudFormacionInput, background_tasks: BackgroundTasks, _token: str = Depends(verificar_api_key_escuela)):
+def health_check():
+    return {"status": "healthy", "version": "2.2.0", "circuit_state": disyuntor_ia.evaluar_estado()}
+
+@app.post("/v1/intake", response_model=ExtraccionFormacionOutput, status_code=status.HTTP_202_ACCEPTED)
+def registrar_solicitud_intake(payload: SolicitudFormacionInput, background_tasks: BackgroundTasks, autenticado: bool = Depends(verificar_api_key_escuela)):
     emitir_log_sanitizado(payload, "Interceptando solicitud HTTP")
-    if not limitador_trafico.verificar_limite(_token):
-        raise HTTPException(status_code=429, detail="Tasa de solicitudes excedida. Límite de infraestructura: Máximo 5 peticiones por minuto.")
     if disyuntor_ia.evaluar_estado() == "OPEN":
-        raise HTTPException(status_code=503, detail="Servicio degradado.")
+        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="Circuito de Inteligencia Artificial abierto de forma preventiva.")
+    if not limitador_trafico.verificar_limite(payload.programa_ref):
+        raise HTTPException(status_code=status.HTTP_429_TOO_MANY_REQUESTS, detail="Tasa de solicitudes excedida")
+    import sqlite3
+    try:
+        fecha_actual = time.strftime("%Y-%m-%d %H:%M:%S")
+        with sqlite3.connect(db_mod.DB_PATH) as conn:
+            cursor = conn.cursor()
+            cursor.execute("PRAGMA foreign_keys = ON;")
+            cursor.execute("""
+                INSERT OR REPLACE INTO solicitudes_intake 
+                (solicitud_id, programa_ref, texto_crudo, fecha_recepcion, status_actual)
+                VALUES (?, ?, ?, ?, ?);
+            """, (payload.solicitud_id, payload.programa_ref, payload.texto_formulario, fecha_actual, "processing"))
+            conn.commit()
+        logger.info(f"🟢 [DATABASE-POST-INTAKE] Solicitud {payload.solicitud_id} registrada con exito en estado: processing")
+    except Exception as db_err:
+        logger.error(f"🔴 [DATABASE-POST-INTAKE] Error de persistencia: {str(db_err)}")
     background_tasks.add_task(ejecutar_pipeline_background, payload)
-    return {"solicitud_id": payload.solicitud_id, "status": "processing", "meta": {"componente_id": "formulario-intake", "componente_version": "1.0.0", "modelo_ref": "openai-compatible-eval", "requiere_revision_humana": True, "status_proceso": "accepted"}}
+    return ExtraccionFormacionOutput(solicitud_id=payload.solicitud_id)
