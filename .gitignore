@@ -14,3 +14,4 @@ venv/
 # Exclusión explícita de secretos de runtime
 .env
 data/records/
+*.db
