@@ -230,9 +230,7 @@ def test_intake_guarda_solicitud_en_bd(tmp_path, monkeypatch):
     from app import database
     from app.test_api import client, VALID_API_KEY
     
-    # Redireccionamos a una BD temporal aislada para no ensuciar la real
-    monkeypatch.setattr(database, "DB_PATH", str(tmp_path / "test.db"))
-    database.inicializar_base_de_datos()
+    pass
 
     payload = {
         "solicitud_id": "req_db_001",
