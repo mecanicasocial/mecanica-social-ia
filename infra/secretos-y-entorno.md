@@ -1,56 +1,42 @@
-# Secretos y variables de entorno
+# 🔐 GOBERNANZA DE SECRETOS Y VARIABLES DE ENTORNO
 
-## Principio
+Este documento establece el inventario oficial, el propósito y las restricciones operacionales de las variables de entorno utilizadas por el Runtime de Mecánica Social IA para gestionar los perímetros de seguridad y conectividad de red.
 
-**Ningún secreto se versiona en Git.** API keys, tokens, contraseñas y
-credenciales viven solo en el entorno de ejecución o en un gestor
-institucional de secretos.
+---
 
-Ver también: `SECURITY.md`, `DATA_GOVERNANCE.md`, ADR-002.
+## 📋 Inventario de Variables de Configuración y Red
 
-## Variables para modo `model` del harness
+Las siguientes variables deben ser inyectadas en el contenedor del servidor web de forma obligatoria según el entorno de ejecución correspondiente:
 
-| Variable | Obligatoria | Descripción |
-|---|---|---|
-| `MS_IA_MODEL_API_KEY` | Sí (modo model) | Credencial del proveedor. Nunca se imprime ni se escribe en resultados. |
-| `MS_IA_MODEL_BASE_URL` | No | Base URL del endpoint (p. ej. `https://api.ejemplo/v1`). Si falta, se usa `base_url` de `models/<id>/config.yaml` si es público y no sensible. |
-| `MS_IA_MODEL_ID` | No | Identificador de modelo en el proveedor. Sobrescribe `model_id` del config. |
-| `MS_IA_MODEL_API_KEY_HEADER` | No | Nombre del header de auth (default: `Authorization` con prefijo `Bearer`). |
-| `MS_IA_MODEL_TIMEOUT_SEC` | No | Timeout HTTP en segundos (default: 60). |
+### 1. `AMBIENTE`
+* **Tipo:** Configuración Lógica.
+* **Valores permitidos:** `development`, `production`.
+* **Propósito:** Determina las barreras de seguridad activas. Si su valor es `production`, se deshabilitan todos los simuladores locales (Mocks) y se exige el cumplimiento estricto de las URLs de red reales.
 
-## Configuración no sensible (sí versionable)
+### 2. `API_KEY_ESCUELA_TOKEN`
+* **Tipo:** Secreto Criptográfico (Llave de entrada).
+* **Valor sintético (Dev/Test):** `ms_ia_secure_token_int_001_env_secured`
+* **Propósito:** Token perimetral utilizado para autenticar las peticiones entrantes desde la Escuela hacia el endpoint `POST /v1/intake` (Contrato INT-001). Su ausencia o descalce provoca un error `403 Forbidden`.
 
-- `evaluations/config.example.yaml` — ejemplo de corrida.
-- `models/<id>/config.yaml` — id, provider, parámetros públicos, nombre de la variable de entorno de la key (**no** el valor).
+### 3. `MS_IA_MODEL_API_KEY`
+* **Tipo:** Secreto Criptográfico (Llave de proveedor).
+* **Valor sintético (Dev/Test):** `mock_local_secret_key`
+* **Propósito:** Credencial utilizada por el cliente interno de IA (`ms_ia`) para autenticarse ante el proveedor de modelos. En desarrollo, valida la comunicación contra el simulador local.
 
-Copiar el ejemplo y ajustar en local **sin** commitear keys:
+### 4. `ESCUELA_WEBHOOK_URL`
+* **Tipo:** Configuración de Red Saliente (Callback INT-001).
+* **Valor sintético (Dev/Test):** `http://mock-provider-ia:8001/webhooks/escuela-intake`
+* **Propósito:** Endpoint de la Escuela utilizado para despachar la confirmación asíncrona inmediata del lead.
+* **Restricción de Producción:** Si `AMBIENTE=production` y esta variable está ausente, el Runtime interrumpe la transacción de inmediato lanzando un `RuntimeError` controlado. Se eliminó físicamente cualquier fallback a localhost.
 
-```bash
-cp evaluations/config.example.yaml evaluations/config.local.yaml
-# config.local.yaml debe permanecer fuera de Git (ver .gitignore si se añade)
-```
+### 5. `ESCUELA_NOTIFICACION_URL` (Inyectada para INT-002)
+* **Tipo:** Configuración de Red Saliente (Callback INT-002).
+* **Valor sintético (Dev/Test):** `http://mock-provider-ia:8001/webhooks/escuela-output`
+* **Propósito:** Endpoint oficial de la Escuela utilizado por la función `disparar_notificacion_int002` para despachar los perfiles de alumnos extraídos y validados por la IA de forma asíncrona en segundo plano.
+* **Restricción de Producción:** Si `AMBIENTE=production` y esta variable está ausente, el Runtime genera un log crítico de auditoría (`[INT-002-SEGURIDAD] INTEGRACIÓN BLOQUEADA`) y lanza un `RuntimeError` bloqueante, impidiendo cualquier fuga silenciosa de información hacia redes externas.
 
-## GitHub Actions
+---
 
-| Contexto | ¿Modo model? | Secretos |
-|---|---|---|
-| PR públicos / forks | **No** | No disponibles de forma segura |
-| `eval-offline.yml` | Solo offline | Ninguno |
-| Futuro job `model` (`workflow_dispatch`, rama protegida) | Opcional | GitHub Actions secrets / OIDC de la org |
+## 🐳 Inyección en Entornos de Microservicios (Docker Compose)
 
-Nunca echo de secretos en logs de CI.
-
-## Rotación e incidentes
-
-Si una key se filtra:
-
-1. Revocar/rotar en el proveedor de inmediato.
-2. Reportar por canal privado (`SECURITY.md`).
-3. No pegar el valor completo en Issues/PR.
-
-## Checklist rápido
-
-- [ ] No hay keys en archivos del commit
-- [ ] `MS_IA_MODEL_API_KEY` solo en shell/CI secrets
-- [ ] Resultados en `evaluations/resultados/` sin PII ni headers de auth
-- [ ] Model-card y `estado` del modelo revisados antes de uso no sintético
+En la infraestructura de evaluación local, todas estas variables se inyectan de forma centralizada y segura a través del bloque `environment:` en el archivo `docker-compose.yaml`, operando bajo el aislamiento estricto de la red privada puente `red-mecanica-social-ia`.
