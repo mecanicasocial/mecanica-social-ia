@@ -32,4 +32,4 @@ jobs:
         API_KEY_ESCUELA_TOKEN: "ms_ia_secure_token_int_001_env_secured"
         MS_IA_MODEL_API_KEY: "fallback_empty_key"
       run: |
-        python -m pytest app/test_api.py -v
+        python -m pytest app/ -v

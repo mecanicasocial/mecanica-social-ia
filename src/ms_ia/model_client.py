@@ -85,6 +85,8 @@ class OpenAICompatibleClient:
         try:
             with urllib.request.urlopen(req, timeout=self.timeout_sec) as resp:
                 body = resp.read().decode("utf-8")
+        except TimeoutError:
+            raise ModelClientError("Tiempo de espera agotado al llamar al modelo") from None
         except urllib.error.HTTPError as exc:
             raise ModelClientError(
                 f"HTTP {exc.code} al llamar al modelo ({self.model_id})"
