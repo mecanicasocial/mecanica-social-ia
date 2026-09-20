@@ -1,3 +1,5 @@
+import random
+import time
 from fastapi import FastAPI, HTTPException, status, Depends, BackgroundTasks
 from pydantic import BaseModel, Field
 from typing import Optional, Literal, Dict
@@ -124,13 +126,33 @@ def disparar_notificacion_int002(solicitud_id: str, resultado_ia: dict, meta_ia:
         logger.info(f"[MOCK_DEVELOPMENT] Payload INT-002: {json.dumps(payload_notificacion)}")
         return
 
-    logger.info(f"[INT-002-DISPATCHER] Despachando notificacion INT-002 hacia {url_notificacion}")
-    try:
-        headers = {"X-Event-Type": "inference.completed"}
-        response = httpx.post(url_notificacion, json=payload_notificacion, headers=headers, timeout=5.0)
-        logger.info(f"[INT-002-DISPATCHER] Respuesta Escuela INT-002 HTTP {response.status_code}")
-    except Exception as err:
-        logger.error(f"[INT-002-DISPATCHER] Error de entrega en notificacion INT-002: {str(err)}")
+    logger.info(f"[INT-002-DISPATCHER] Iniciando secuencia de despacho resiliente hacia {url_notificacion}")
+    headers = {"X-Event-Type": "inference.completed"}
+    max_reintentos = 3
+    base_espera = 2.0
+
+    for intento in range(max_reintentos + 1):
+        try:
+            response = httpx.post(url_notificacion, json=payload_notificacion, headers=headers, timeout=5.0)
+            
+            # Si el código es transitorio del servidor (500, 502, 503), forzamos una excepción para reintentar
+            if response.status_code in [500, 502, 503]:
+                raise httpx.HTTPStatusError(f"Error de servidor HTTP {response.status_code}", request=None, response=response)
+                
+            logger.info(f"[INT-002-DISPATCHER] Exito absoluto en Intento {intento}. Respuesta Escuela HTTP {response.status_code}")
+            return
+            
+        except (httpx.RequestError, httpx.HTTPStatusError) as err:
+            logger.warning(f"[INT-002-RETRY_GATE] Intento {intento} fallido con error: {str(err)}")
+            if intento == max_reintentos:
+                logger.error("[INT-002-DISPATCHER] Se agotaron todos los reintentos logicos. El paquete de notificacion se descarta.")
+                return
+                
+            # Algoritmo matemático: Base * 2^intento + Jitter aleatorio (-500ms a +500ms)
+            jitter = random.uniform(-0.5, 0.5)
+            espera_calculada = max(0.1, (base_espera * (2 ** intento)) + jitter)
+            logger.info(f"[INT-002-RETRY_GATE] Aplicando Backoff Exponencial. Esperando {espera_calculada:.2f} segundos antes del siguiente intento...")
+            time.sleep(espera_calculada)
 
 
 def ejecutar_pipeline_background(payload: SolicitudFormacionInput):
