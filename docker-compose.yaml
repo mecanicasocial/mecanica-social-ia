@@ -1,8 +1,3 @@
-version: '3.8'
-
-# ==============================================================================
-# ORQUESTRACIÓN DE CONTENEDORES LOCALES (MVP / EVALUACIÓN CONTRATO INT-001)
-# ==============================================================================
 services:
   # 1. El Runtime del Servidor Web (FastAPI / API REST Asíncrona)
   api-runtime:
@@ -13,10 +8,10 @@ services:
     ports:
       - "8000:8000"
     environment:
+      - PYTHONPATH=src
       - AMBIENTE=development
       - API_KEY_ESCUELA_TOKEN=ms_ia_secure_token_int_001_env_secured
       - MS_IA_MODEL_API_KEY=mock_local_secret_key
-      # URL obligatoria: apunta de forma segura al contenedor del mock vecino en la red interna
       - ESCUELA_WEBHOOK_URL=http://mock-provider-ia:8001/webhooks/escuela-intake
       - ESCUELA_NOTIFICACION_URL=http://mock-provider-ia:8001/webhooks/escuela-output
     volumes:
@@ -27,20 +22,17 @@ services:
     networks:
       - red-mecanica-social-ia
 
-  # 2. El Proveedor de IA Simulado (Mock de Evaluación No Productivo)
+  # 2. El Proveedor de IA Simulado y Mock Receptor Inteligente de la Escuela
   mock-provider-ia:
-    image: python:3.14-slim
+    build:
+      context: .
+      dockerfile: Dockerfile.mock
     container_name: ms_mock_ia_container
     ports:
       - "8001:8001"
-    command: uvicorn app.mock_escuela:app --host 0.0.0.0 --port 8001
-    volumes:
-      - ./data/samples:/app/samples
-    working_dir: /app
     networks:
       - red-mecanica-social-ia
 
-# Red interna privada bridge para aislar la comunicación bilateral entre servicios
 networks:
   red-mecanica-social-ia:
     driver: bridge

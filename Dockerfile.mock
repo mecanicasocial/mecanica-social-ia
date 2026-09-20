@@ -1,0 +1,13 @@
+FROM python:3.14-slim
+
+WORKDIR /app
+
+# Instalamos los requerimientos mínimos del receptor de la Escuela
+RUN pip install --no-cache-dir fastapi uvicorn jsonschema
+
+COPY app/mock_escuela.py ./app/
+COPY data/schemas/ ./data/schemas/
+
+EXPOSE 8001
+
+CMD ["uvicorn", "app.mock_escuela:app", "--host", "0.0.0.0", "--port", "8001"]
