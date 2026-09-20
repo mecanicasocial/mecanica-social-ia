@@ -170,3 +170,21 @@ def test_int002_notificacion_bloqueo_por_campo_ausente():
     with pytest.raises(jsonschema.exceptions.ValidationError) as exc_info:
         jsonschema.validate(instance=sample, schema=schema)
     assert "status_proceso" in str(exc_info.value)
+
+def test_produccion_sin_notificacion_url_lanza_error_controlado_int002():
+    """TEST INT-002 AUDITORÍA: AMBIENTE=production sin URL de notificacion debe arrojar RuntimeError."""
+    import pytest
+    from app.api import disparar_notificacion_int002
+    os.environ["AMBIENTE"] = "production"
+    if "ESCUELA_NOTIFICACION_URL" in os.environ: del os.environ["ESCUELA_NOTIFICACION_URL"]
+    
+    payload_resultado_mock = {"nombre": "Test", "email": "test@email.com", "telefono": "123", "interes": "Mecanica"}
+    payload_meta_mock = {
+        "componente_id": "test", "componente_version": "1.0.0", "modelo_ref": "test",
+        "requiere_revision_humana": True, "tiempo_respuesta_ms": 100, "status_proceso": "completed"
+    }
+    
+    with pytest.raises(RuntimeError) as exc_info:
+        disparar_notificacion_int002("solicitud-int002-fail", payload_resultado_mock, payload_meta_mock)
+    assert "ESCUELA_NOTIFICACION_URL es obligatoria" in str(exc_info.value)
+    os.environ["AMBIENTE"] = "development"
