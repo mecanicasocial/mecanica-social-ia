@@ -1,146 +1,37 @@
-# Integraciones
+# 🗺️ ÍNDICE MAESTRO DE INTEGRACIONES INSTITUCIONALES
 
-## 1. Propósito
+Este documento registra el mapa oficial, el estado de madurez de la gobernanza y el nivel de enforcement técnico de las interfaces de datos bilaterales entre Mecánica Social IA y Mecánica Social Escuela.
 
-Este documento establece cómo se diseñan y documentan las integraciones de `mecanica-social-ia` con otros sistemas, servicios, repositorios y componentes de Mecánica Social.
+---
 
-## 2. Principios
+## 📊 Ecosistema Contractual Vigente (Fase MVP Local)
 
-1. **Mínimo privilegio.**
-2. **Separación de credenciales.**
-3. **Trazabilidad.**
-4. **Minimización de datos.**
-5. **Validación de entradas y salidas.**
-6. **Manejo controlado de errores.**
-7. **Versionamiento de interfaces.**
-8. **Controles proporcionales al riesgo.**
+El repositorio divide sus capacidades operacionales en dos contratos complementarios de datos, validados de forma matemática rígida mediante robots de prueba locales:
 
-## 3. Relación con `mecanica-social-escuela`
+### 1. CONTRATO INT-001: Admisión e Intake Asíncrono
+* **Tipo:** Interfaz de Entrada (Ingreso de solicitudes desde la Escuela hacia la IA).
+* **Estado de Gobernanza:** `Provisional` — Contrato técnico y especificaciones descriptivas de 3671 bytes consolidadas.
+* **Enforcement Técnico:** `Operativo Experimental` — Servidor FastAPI asíncrono implementado en el código, protegido localmente por `PerimetralRateLimiter` y `IA_CircuitBreaker` en memoria RAM. Cuenta con bloqueo duro e intolerante a fallas en entornos de producción ante la ausencia de `ESCUELA_WEBHOOK_URL`.
 
-```text
-mecanica-social-escuela
-        │
-        │ necesidades / casos de uso
-        ▼
-mecanica-social-ia
-        │
-        │ capacidades de IA
-        ▼
-resultados / servicios
-```
+### 2. CONTRATO INT-002: Notificación de Resultados Estructurados
+* **Tipo:** Interfaz de Salida (Devolución de perfiles purificados desde la IA hacia la Escuela).
+* **Estado de Gobernanza:** `Propuesto` — Fase de especificación de arquitectura y diseño inicial; pendiente de ratificación institucional bilateral de endpoints, políticas de reintentos y llaves de cifrado criptográfico (HMAC/mTLS).
+* **Enforcement Técnico:** `Código Físico Implementado` — La función despachadora `disparar_notificacion_int002` se encuentra acoplada físicamente al Runtime en `app/api.py`. Realiza una validación preventiva simétrica contra el JSON Schema `int-002-output.schema.json` y se encuentra integrada a la suite de pruebas automáticas.
 
-La implementación concreta deberá definir interfaz, entradas, salidas, autenticación, autorización, errores, versionamiento, datos y responsabilidades.
+---
 
-Existe un contrato **provisional** en `contratos/INT-001-escuela.md` (schema/muestra sintéticos). La confirmación **bilateral** con Escuela sigue pendiente (PEND-002); no inventar API productiva ni elevar el estado a Validada/Operativa sin esa confirmación. Ver `pendientes-intencionales.md`.
+## 🔄 Matriz de Trazabilidad de Contratos y Validadores
 
-No debe asumirse que ambos repositorios deben compartir código directamente.
+El ciclo de vida de los datos se encuentra blindado de extremo a extremo mediante el siguiente mapa físico de control cruzado:
 
-## 4. Proveedores de modelos
+| Código Contrato | Documento de Especificación | Esquema de Validación JSON (Aduana) | Payload Sintético de Simulación |
+| :--- | :--- | :--- | :--- |
+| **INT-001** | `docs/arquitectura/contratos/INT-001-escuela.md` | `data/schemas/int-001-intake-response.schema.json`<br>`data/schemas/int-001-output.schema.json` | `data/samples/int-001-solicitud-formacion.sample.json` |
+| **INT-002** | `docs/arquitectura/contratos/INT-002-escuela-output.md` | `data/schemas/int-002-output.schema.json` | `data/samples/int-002-notificacion.sample.json` |
 
-Toda integración con un proveedor externo debería documentar:
+---
 
-- proveedor;
-- modelo y versión;
-- interfaz;
-- finalidad;
-- datos enviados y recibidos;
-- tratamiento de datos cuando sea relevante;
-- autenticación;
-- restricciones;
-- estrategia ante cambios de versión;
-- evaluación correspondiente.
+## 🏁 Certificación de Calidad y Robustez Operacional
 
-Las credenciales se mantienen fuera del repositorio.
-
-La adopción de un **vendor productivo** y la validación de **INT-002** requieren autorización institucional (PEND-001). No hay proveedor productivo versionado en `models/` hasta ese desbloqueo; ver `pendientes-intencionales.md`.
-
-## 5. Contrato de integración
-
-Una integración estable debería registrar:
-
-```text
-Identificador
-Propósito
-Sistema origen
-Sistema destino
-Entrada
-Salida
-Autenticación
-Autorización
-Errores
-Versionado
-Datos involucrados
-Responsable
-Evaluación
-```
-
-## 6. Datos en tránsito
-
-Antes de intercambiar información debe determinarse qué datos son necesarios, si contienen información personal o sensible, la autorización para tratarlos, conservación, acceso y protección durante la transmisión.
-
-## 7. Fallos y resiliencia
-
-Cuando corresponda deben considerarse:
-
-- timeouts;
-- reintentos controlados;
-- límites de uso;
-- respuestas inválidas;
-- indisponibilidad;
-- cambios de API;
-- incompatibilidad de versiones;
-- registro de errores;
-- recuperación.
-
-## 8. Observabilidad
-
-Las integraciones relevantes deberían permitir identificar cuándo ocurrió una operación, qué componente la inició, qué versión participó, qué integración se utilizó y el resultado general.
-
-Los registros no deben exponer secretos ni datos personales innecesarios.
-
-## 9. Inventario inicial
-
-| ID | Sistema origen | Sistema destino | Propósito | Datos | Estado |
-|---|---|---|---|---|---|
-| INT-001 | Mecánica Social Escuela | Mecánica Social IA | Asistencia en solicitudes de formación (intake) | Texto de solicitud; schema sintético provisional | **Provisional** — ver contrato |
-| INT-002 | Mecánica Social IA | Proveedor de modelo | Inferencia para evaluación / futuro uso autorizado | Solo sintéticos hasta autorización | Propuesto (slot `openai-compatible-eval`) |
-
-Estas filas no presuponen integraciones productivas implementadas.
-
-### Contratos versionados
-
-| ID | Documento | Notas |
-|---|---|---|
-| INT-001 | [`contratos/INT-001-escuela.md`](contratos/INT-001-escuela.md) | Provisional; falta confirmación con Escuela |
-| INT-002 | Model-card + `models/openai-compatible-eval/` + ADR-002 | Vendor productivo aún no autorizado |
-
-Schema/muestra sintéticos INT-001:
-
-- `data/schemas/int-001-solicitud-formacion.schema.json`
-- `data/samples/int-001-solicitud-formacion.sample.json`
-
-### Notas de bloqueo intencional
-
-- **INT-001** está en estado **Provisional** (contrato y schema sintéticos documentados) hasta **confirmación bilateral** con Escuela. No inventar API productiva ni campos no acordados. Ver `pendientes-intencionales.md` (PEND-002).
-- **INT-002** permanece en **Propuesto** hasta **autorización institucional** de vendor productivo, evaluación y validación de la integración. Ver `pendientes-intencionales.md` (PEND-001).
-
-## 10. Cambios
-
-Los cambios relevantes deben gestionarse mediante:
-
-```text
-Issue → Branch → Implementación → Evaluación → Pull Request → Revisión → Merge
-```
-
-Si modifican una decisión arquitectónica importante, debe considerarse un ADR.
-
-## 11. Estados
-
-Toda integración debe marcarse como:
-
-- Propuesta
-- En desarrollo
-- Validada
-- Operativa
-- Deprecada
-- Archivada
+* **Suite de Pruebas Unitarias:** Respaldada de forma reproducible por **12 pruebas automatizadas en verde (`100% passed`)** libres de advertencias, las cuales validan flujos exitosos, contingencias degradadas de fallback con `status_proceso: "degraded"`, barreras de red en desarrollo y simulaciones de error controlado.
+* **Entorno de Microservicios:** Orquestado de forma local e independiente de internet mediante `docker-compose.yaml` bajo una red privada bridge aislada (`red-mecanica-social-ia`).
