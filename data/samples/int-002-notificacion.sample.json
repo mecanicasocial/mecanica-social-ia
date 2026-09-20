@@ -1,0 +1,17 @@
+{
+  "solicitud_id": "SOL-2026-X99",
+  "resultado": {
+    "nombre": "Carlos Fuentes",
+    "email": "carlos.fuentes@email.com",
+    "telefono": "56912345678",
+    "interes": "Inscripción en curso de Inteligencia Artificial"
+  },
+  "meta": {
+    "componente_id": "notificador-resultados",
+    "componente_version": "1.0.0",
+    "modelo_ref": "openai-compatible-eval",
+    "requiere_revision_humana": true,
+    "tiempo_respuesta_ms": 150,
+    "status_proceso": "completed"
+  }
+}
