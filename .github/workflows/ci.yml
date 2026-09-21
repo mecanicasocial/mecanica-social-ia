@@ -2,7 +2,7 @@ name: Suite de Regresión Robótica (Pytest)
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, fix/fase2-pr3-docker-reproducible ]
   pull_request:
     branches: [ main ]
 
@@ -13,17 +13,24 @@ jobs:
     - name: 1. Clonar el código fuente del repositorio
       uses: actions/checkout@v4
 
-    - name: 2. Configurar Python 3.14
+    - name: 2. Configurar el entorno oficial de Python 3.14
       uses: actions/setup-python@v5
       with:
         python-version: '3.14'
-        cache: 'pip'
 
-    - name: 3. Instalar dependencias
+    - name: 3. Instalar librerías y dependencias del Runtime
       run: |
         python -m pip install --upgrade pip
-        pip install -r requirements.txt
+        pip install pytest fastapi httpx uvicorn jsonschema pydantic python-dotenv pyyaml
 
-    - name: 4. Ejecutar la suite completa
+    - name: 4. Ejecutar toda la suite de pruebas unitarias en la nube
+      env:
+        API_KEY_ESCUELA_TOKEN: "ms_ia_secure_token_int_001_env_secured"
+        MS_IA_MODEL_API_KEY: "mock_key"
+        AMBIENTE: "development"
       run: |
         python -m pytest app/ -v
+
+    - name: 5. Validar la Reproducibilidad de la Infraestructura en Contenedores (Docker Build)
+      run: |
+        docker compose build

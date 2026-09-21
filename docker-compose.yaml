@@ -1,38 +1,31 @@
+version: '3.8'
+
 services:
-  # 1. El Runtime del Servidor Web (FastAPI / API REST Asíncrona)
-  api-runtime:
+  api:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: ms_api_runtime_container
     ports:
       - "8000:8000"
     environment:
-      - PYTHONPATH=${PYTHONPATH}
-      - AMBIENTE=${AMBIENTE}
-      - API_KEY_ESCUELA_TOKEN=${API_KEY_ESCUELA_TOKEN}
-      - MS_IA_MODEL_API_KEY=${MS_IA_MODEL_API_KEY}
-      - ESCUELA_WEBHOOK_URL=${ESCUELA_WEBHOOK_URL}
-      - ESCUELA_NOTIFICACION_URL=${ESCUELA_NOTIFICACION_URL}
+      - AMBIENTE=development
+      - API_KEY_ESCUELA_TOKEN=ms_ia_secure_token_int_001_env_secured
+      - MS_IA_MODEL_BASE_URL=http://fake_llm:8001/v1
+      - MS_IA_MODEL_API_KEY=mock_key
+      - MS_IA_MODEL_ID=fake-llm-advanced-7b
+      - MODEL_TIMEOUT_SECONDS=30
     volumes:
-      - ./data:/app/data
-      - ./docs:/app/docs
+      - ./data:/workspaces/mecanica-social-ia/data
     depends_on:
-      - mock-provider-ia
-    networks:
-      - red-mecanica-social-ia
+      - fake_llm
 
-  # 2. El Proveedor de IA Simulado y Mock Receptor Inteligente de la Escuela
-  mock-provider-ia:
+  fake_llm:
     build:
       context: .
       dockerfile: Dockerfile.mock
-    container_name: ms_mock_ia_container
     ports:
       - "8001:8001"
-    networks:
-      - red-mecanica-social-ia
-
-networks:
-  red-mecanica-social-ia:
-    driver: bridge
+    environment:
+      - AMBIENTE=development
+    volumes:
+      - ./data:/workspaces/mecanica-social-ia/data
