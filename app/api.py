@@ -242,6 +242,10 @@ def registrar_solicitud_intake(payload: SolicitudFormacionInput, background_task
             conn.commit()
         logger.info(f"🟢 [DATABASE-POST-INTAKE] Solicitud {payload.solicitud_id} registrada con exito en estado: processing")
     except Exception as db_err:
-        logger.error(f"🔴 [DATABASE-POST-INTAKE] Error de persistencia: {str(db_err)}")
+        logger.error(f"🔴 [DATABASE-POST-INTAKE] Error critico de persistencia: {str(db_err)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Error interno: No se pudo registrar la solicitud en el almacenamiento duradero de la ONG."
+        )
     background_tasks.add_task(ejecutar_pipeline_background, payload)
     return ExtraccionFormacionOutput(solicitud_id=payload.solicitud_id)
