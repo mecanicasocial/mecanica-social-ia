@@ -48,7 +48,7 @@ def test_intake_bloqueo_cuando_circuito_abierto():
 def test_intake_bloqueo_por_rate_limiting():
     headers = {"X-API-Key": VALID_API_KEY}
     payload = {"solicitud_id": "req_burst_test", "texto_formulario": "Rafaga.", "programa_ref": "ref_rate_limit_burst", "locale": "es-CL", "clasificacion_datos": "sintetica"}
-    limitador_trafico.historial_consumos["ref_rate_limit_burst"] = []
+    limitador_trafico.historial_consumos[VALID_API_KEY] = []
     for i in range(5):
         payload["solicitud_id"] = f"req_burst_{i}"
         response = client.post("/v1/intake", json=payload, headers=headers)
