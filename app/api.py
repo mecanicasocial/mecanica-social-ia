@@ -226,7 +226,7 @@ def registrar_solicitud_intake(payload: SolicitudFormacionInput, background_task
     emitir_log_sanitizado(payload, "Interceptando solicitud HTTP")
     if disyuntor_ia.evaluar_estado() == "OPEN":
         raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="Circuito de Inteligencia Artificial abierto de forma preventiva.")
-    if not limitador_trafico.verificar_limite(payload.programa_ref):
+    if not limitador_trafico.verificar_limite(autenticado):
         raise HTTPException(status_code=status.HTTP_429_TOO_MANY_REQUESTS, detail="Tasa de solicitudes excedida")
     import sqlite3
     try:

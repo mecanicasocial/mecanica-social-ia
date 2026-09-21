@@ -21,4 +21,4 @@ def verificar_api_key_escuela(api_key_recibida: str = Security(api_key_header)) 
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Credencial perimetral inválida o caducada para Mecánica Social IA."
         )
-    return True
+    return api_key_recibida
