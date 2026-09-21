@@ -123,3 +123,13 @@ def test_intake_bloqueo_por_falta_de_consentimiento():
     response = client.post("/v1/intake", json=payload, headers={"X-API-Key": VALID_API_KEY})
     assert response.status_code == 400
     assert "es mandatorio aceptar la politica" in response.json()["detail"].lower()
+
+
+def test_get_intake_exige_autenticacion():
+    response = client.get("/v1/intake/cualquier_id")
+    assert response.status_code == 401
+
+
+def test_get_intake_inexistente_devuelve_404():
+    response = client.get("/v1/intake/no_existe", headers={"X-API-Key": VALID_API_KEY})
+    assert response.status_code == 404

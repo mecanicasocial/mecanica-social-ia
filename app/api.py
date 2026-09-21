@@ -204,21 +204,18 @@ def ejecutar_pipeline_background(payload: SolicitudFormacionInput):
     resultado_puro = {k: v for k, v in final.items() if k != "meta"}
     disparar_notificacion_int002(payload.solicitud_id, resultado_puro, final["meta"])
 @app.get("/v1/intake/{solicitud_id}")
-def obtener_registro_intake(solicitud_id: str):
+def obtener_registro_intake(solicitud_id: str, autenticado: bool = Depends(verificar_api_key_escuela)):
     import sqlite3
-    try:
-        with sqlite3.connect(db_mod.DB_PATH) as conn:
-            conn.row_factory = sqlite3.Row
-            cursor = conn.cursor()
-            cursor.execute("SELECT solicitud_id, programa_ref, texto_crudo, fecha_recepcion, status_actual FROM solicitudes_intake WHERE solicitud_id = ?;", (solicitud_id,))
-            fila_madre = cursor.fetchone()
-            if not fila_madre: return {"error": "Solicitud no encontrada"}
-            solicitud = dict(fila_madre)
-            cursor.execute("SELECT nombre_extraido, email_extraido, telefono_extraido, interes_extraido, modelo_ref, tiempo_respuesta_ms, fecha_notificacion FROM resultados_inferencia WHERE solicitud_id = ?;", (solicitud_id,))
-            fila_hija = cursor.fetchone()
-            return {**solicitud, "extraccion_estructurada_ia": dict(fila_hija) if fila_hija else None}
-    except Exception as err:
-        return {"error": str(err)}
+    with sqlite3.connect(db_mod.DB_PATH) as conn:
+        conn.row_factory = sqlite3.Row
+        cursor = conn.cursor()
+        cursor.execute("SELECT solicitud_id, programa_ref, fecha_recepcion, status_actual FROM solicitudes_intake WHERE solicitud_id = ?;", (solicitud_id,))
+        fila_madre = cursor.fetchone()
+        if not fila_madre:
+            raise HTTPException(status_code=404, detail="Solicitud no encontrada")
+        cursor.execute("SELECT nombre_extraido, email_extraido, telefono_extraido, interes_extraido, modelo_ref, tiempo_respuesta_ms, fecha_notificacion FROM resultados_inferencia WHERE solicitud_id = ?;", (solicitud_id,))
+        fila_hija = cursor.fetchone()
+        return {**dict(fila_madre), "extraccion_estructurada_ia": dict(fila_hija) if fila_hija else None}
 
 @app.get("/health")
 def health_check():
