@@ -13,7 +13,7 @@ def llm_falso():
     """FIXTURE SESIÓN: Levanta el servidor compatible con OpenAI en un puerto libre asignado por el OS."""
     with socket.socket() as s:
         s.bind(("127.0.0.1", 0))
-        puerto = s.getsockname()[1][1]
+        puerto = s.getsockname()[1][1][1]
         
     server = uvicorn.Server(uvicorn.Config("app.fake_llm:app", host="127.0.0.1", port=puerto, log_level="error"))
     hilo = threading.Thread(target=server.run, daemon=True)
