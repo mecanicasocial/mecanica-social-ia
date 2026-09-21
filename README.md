@@ -48,4 +48,4 @@ Utiliza esta matriz de referencia rápida para gestionar la infraestructura y el
    ```
 2. Abre la pestaña **Ports** de tu entorno y navega al puerto `8000`.
 3. Añade `/docs` a la barra de direcciones del navegador web para interactuar de forma gráfica con la API mediante **Swagger UI**.
-4. Autoriza la sección utilizando el token criptográfico: `ms_ia_secure_token_int_001_env_secured`.
+4. Autoriza la sección utilizando el token criptográfico: `<API_KEY>`.
