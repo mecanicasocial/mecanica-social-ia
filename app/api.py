@@ -161,24 +161,13 @@ def ejecutar_pipeline_background(payload: SolicitudFormacionInput):
             raise RuntimeError("Circuito de IA abierto de forma preventiva.")
                 # Conexión real al cliente OpenAI compatible
         from ms_ia.model_client import OpenAICompatibleClient
-        base_url_ia = os.getenv("MS_IA_MODEL_BASE_URL", "http://127.0.0.1:8001")
+        base_url_ia = "http://127.0.0.1:8001"
         api_key_ia = os.getenv("MS_IA_MODEL_API_KEY", "mock_key")
         model_id_ia = os.getenv("MS_IA_MODEL_ID", "fake-llm-advanced-7b")
         client_ia = OpenAICompatibleClient(base_url=base_url_ia, api_key=api_key_ia, model_id=model_id_ia, timeout_sec=5.0)
         t_inicio = time.time()
         resultado_ia = client_ia.complete(system_or_prompt="Extrae campos JSON", user_input=payload.texto_formulario)
         tiempo_ms = int((time.time() - t_inicio) * 1000)
-        texto_ia = getattr(resultado_ia, "text", "") or ""
-        parsed = json.loads(texto_ia) if texto_ia else {}
-        final = {
-            "nombre": parsed.get("nombre") or "NO_PR",
-            "email": parsed.get("email") or "NO_PR",
-            "telefono": parsed.get("telefono") or "NO_PR",
-            "interes": parsed.get("interes") or "NO_PR",
-            "meta": {"componente_id": "formulario-intake", "componente_version": "1.0.0",
-                     "modelo_ref": model_id_ia, "requiere_revision_humana": True,
-                     "tiempo_respuesta_ms": tiempo_ms, "status_proceso": "completed"},
-        }
         disyuntor_ia.registrar_exito()
     except Exception as e:
         disyuntor_ia.registrar_fallo()
