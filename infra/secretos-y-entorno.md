@@ -15,7 +15,7 @@ Las siguientes variables deben ser inyectadas en el contenedor del servidor web 
 
 ### 2. `API_KEY_ESCUELA_TOKEN`
 * **Tipo:** Secreto Criptográfico (Llave de entrada).
-* **Valor sintético (Dev/Test):** `ms_ia_secure_token_int_001_env_secured`
+* **Valor sintético (Dev/Test):** `<API_KEY>`
 * **Propósito:** Token perimetral utilizado para autenticar las peticiones entrantes desde la Escuela hacia el endpoint `POST /v1/intake` (Contrato INT-001). Su ausencia o descalce provoca un error `403 Forbidden`.
 
 ### 3. `MS_IA_MODEL_API_KEY`
