@@ -5,7 +5,7 @@ from fastapi.testclient import TestClient
 from app.api import app, disyuntor_ia, limitador_trafico
 
 client = TestClient(app)
-VALID_API_KEY = "ms_ia_secure_token_int_001_env_secured"
+VALID_API_KEY = os.environ["API_KEY_ESCUELA_TOKEN"]
 
 def test_endpoint_health():
     response = client.get("/health")
