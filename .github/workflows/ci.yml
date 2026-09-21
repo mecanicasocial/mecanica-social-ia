@@ -2,7 +2,7 @@ name: Suite de Regresión Robótica (Pytest)
 
 on:
   push:
-    branches: [ main, fix/tests-aislados ]
+    branches: [ main ]
   pull_request:
     branches: [ main ]
 
@@ -13,20 +13,17 @@ jobs:
     - name: 1. Clonar el código fuente del repositorio
       uses: actions/checkout@v4
 
-    - name: 2. Configurar el entorno oficial de Python 3.14
+    - name: 2. Configurar Python 3.14
       uses: actions/setup-python@v5
       with:
         python-version: '3.14'
+        cache: 'pip'
 
-    - name: 3. Instalar librerías y dependencias del Runtime
+    - name: 3. Instalar dependencias
       run: |
         python -m pip install --upgrade pip
-        pip install pytest fastapi httpx uvicorn jsonschema pydantic python-dotenv pyyaml
+        pip install -r requirements.txt
 
-    - name: 4. Ejecutar toda la suite de pruebas unitarias en la nube
-      env:
-        API_KEY_ESCUELA_TOKEN: "ms_ia_secure_token_int_001_env_secured"
-        MS_IA_MODEL_API_KEY: "mock_key"
-        AMBIENTE: "development"
+    - name: 4. Ejecutar la suite completa
       run: |
         python -m pytest app/ -v
