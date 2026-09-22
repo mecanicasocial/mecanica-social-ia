@@ -11,6 +11,12 @@ from app.dependencies import verificar_api_key_escuela
 import app.database as db_mod
 
 load_dotenv()
+
+from cryptography.fernet import Fernet
+SECRET_CRYPTO_KEY = os.getenv("MS_IA_CRYPTO_KEY", "aBmrTYKy9AP5Ng9TjhO93TWazRb7NuQ-FXNExg-hNt0=")
+if isinstance(SECRET_CRYPTO_KEY, str):
+    SECRET_CRYPTO_KEY = SECRET_CRYPTO_KEY.encode()
+cs = Fernet(SECRET_CRYPTO_KEY)
 RESET = "\033[0m"
 ROJO = "\033[31m"
 VERDE = "\033[32m"
@@ -88,6 +94,8 @@ class SolicitudFormacionInput(BaseModel):
     programa_ref: str = Field(..., description="Referencia.")
     locale: str = Field(..., description="Locale.")
     clasificacion_datos: Literal["sintetica", "publica", "autorizada"] = Field(..., description="Datos.")
+    acepta_politica_privacidad: bool = Field(..., description="Consentimiento legal mandatorio.")
+    version_terminos: str = Field(..., description="Version terminos.")
     model_config = {"extra": "forbid"}
 
 class MetaSalida(BaseModel):
@@ -224,6 +232,18 @@ def health_check():
 @app.post("/v1/intake", response_model=ExtraccionFormacionOutput, status_code=status.HTTP_202_ACCEPTED)
 def registrar_solicitud_intake(payload: SolicitudFormacionInput, background_tasks: BackgroundTasks, autenticado: bool = Depends(verificar_api_key_escuela)):
     emitir_log_sanitizado(payload, "Interceptando solicitud HTTP")
+    
+    # 🔞 REGLA DE PRODUCTO: Declaración y control perimetral de edad y datos sensibles (Ley 21.719)
+    texto_analizar = payload.texto_formulario.lower()
+    
+    if any(p in texto_analizar for p in ["menor de edad", "tengo 16", "tengo 17", "tengo 15"]):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Ingesta rechazada: El programa de formación está reservado exclusivamente para mayores de edad."
+        )
+        
+    if any(p in texto_analizar for p in ["rut ", "r.u.t", "clave", "patologia", "medico"]):
+        logger.warning("⚠️ [DATA-GOVERNANCE] Alerta: Se detectó potencial PII sensible no autorizada en el formulario libre.")
     if disyuntor_ia.evaluar_estado() == "OPEN":
         raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="Circuito de Inteligencia Artificial abierto de forma preventiva.")
     if not limitador_trafico.verificar_limite(autenticado):
@@ -238,7 +258,7 @@ def registrar_solicitud_intake(payload: SolicitudFormacionInput, background_task
                 INSERT OR REPLACE INTO solicitudes_intake 
                 (solicitud_id, programa_ref, texto_crudo, fecha_recepcion, status_actual)
                 VALUES (?, ?, ?, ?, ?);
-            """, (payload.solicitud_id, payload.programa_ref, payload.texto_formulario, fecha_actual, "processing"))
+            """, (payload.solicitud_id, payload.programa_ref, cs.encrypt(payload.texto_formulario.encode()).decode(), fecha_actual, "processing"))
             conn.commit()
         logger.info(f"🟢 [DATABASE-POST-INTAKE] Solicitud {payload.solicitud_id} registrada con exito en estado: processing")
     except Exception as db_err:
