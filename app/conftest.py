@@ -1,4 +1,7 @@
 import os
+os.environ["MS_IA_CRYPTO_KEY"] = "3uHkeA9mF_kj5zUZH4bDsOfs0TUG-7asVhGsy_U2InI="
+os.environ["API_KEY_ESCUELA_TOKEN"] = "ms_ia_secure_token_int_001_env_secured"
+import os
 os.environ["AMBIENTE"] = "development"
 os.environ["API_KEY_ESCUELA_TOKEN"] = "token-solo-para-pruebas"
 os.environ["MS_IA_MODEL_API_KEY"] = "clave-solo-para-pruebas"

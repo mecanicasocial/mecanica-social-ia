@@ -33,15 +33,15 @@ def inicializar_base_de_datos():
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS resultados_inferencia (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
-                solicitud_id TEXT NOT NULL,
-                nombre_extraido TEXT NOT NULL,
+                                nombre_extraido TEXT NOT NULL,
                 email_extraido TEXT NOT NULL,
                 telefono_extraido TEXT NOT NULL,
                 interes_extraido TEXT NOT NULL,
                 modelo_ref TEXT NOT NULL,
                 tiempo_respuesta_ms INTEGER,
                 fecha_notificacion TEXT NOT NULL,
-                FOREIGN KEY (solicitud_id) REFERENCES solicitudes_intake (solicitud_id) ON DELETE CASCADE
+                solicitud_id TEXT NOT NULL UNIQUE,
+            FOREIGN KEY (solicitud_id) REFERENCES solicitudes_intake (solicitud_id) ON DELETE CASCADE
             );
         """)
         
