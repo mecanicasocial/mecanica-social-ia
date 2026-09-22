@@ -13,7 +13,11 @@ import app.database as db_mod
 load_dotenv()
 
 from cryptography.fernet import Fernet
-SECRET_CRYPTO_KEY = os.getenv("MS_IA_CRYPTO_KEY", "aBmrTYKy9AP5Ng9TjhO93TWazRb7NuQ-FXNExg-hNt0=")
+import os
+from cryptography.fernet import Fernet
+SECRET_CRYPTO_KEY = os.getenv("MS_IA_CRYPTO_KEY")
+if not SECRET_CRYPTO_KEY:
+    raise RuntimeError("Configuración Insegura: Falta la clave de cifrado MS_IA_CRYPTO_KEY en el entorno.")
 if isinstance(SECRET_CRYPTO_KEY, str):
     SECRET_CRYPTO_KEY = SECRET_CRYPTO_KEY.encode()
 cs = Fernet(SECRET_CRYPTO_KEY)
@@ -200,9 +204,7 @@ def ejecutar_pipeline_background(payload: SolicitudFormacionInput):
             cursor.execute("PRAGMA foreign_keys = ON;")
             cursor.execute("UPDATE solicitudes_intake SET status_actual = ? WHERE solicitud_id = ?;", (status_final, payload.solicitud_id))
             cursor.execute("""
-                INSERT OR REPLACE INTO resultados_inferencia 
-                (solicitud_id, nombre_extraido, email_extraido, telefono_extraido, interes_extraido, modelo_ref, tiempo_respuesta_ms, fecha_notificacion)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?);
+                INSERT INTO resultados_inferencia (solicitud_id, nombre_extraido, email_extraido, telefono_extraido, interes_extraido, modelo_ref, tiempo_respuesta_ms, fecha_notificacion) VALUES (?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT(solicitud_id) DO UPDATE SET nombre_extraido=excluded.nombre_extraido, email_extraido=excluded.email_extraido, telefono_extraido=excluded.telefono_extraido, interes_extraido=excluded.interes_extraido, modelo_ref=excluded.modelo_ref, tiempo_respuesta_ms=excluded.tiempo_respuesta_ms, fecha_notificacion=excluded.fecha_notificacion;
             """, (payload.solicitud_id, final.get("nombre", "NO_PR"), final.get("email", "NO_PR"), final.get("telefono", "NO_PR"), final.get("interes", "NO_PR"), final["meta"].get("modelo_ref", "FALLBACK"), final["meta"].get("tiempo_respuesta_ms", 0), fecha_notif))
             conn.commit()
         logger.info(f"🟢 [DATABASE-BACKGROUND] Sincronizacion exitosa para {payload.solicitud_id}. Estado: {status_final}")
@@ -255,9 +257,7 @@ def registrar_solicitud_intake(payload: SolicitudFormacionInput, background_task
             cursor = conn.cursor()
             cursor.execute("PRAGMA foreign_keys = ON;")
             cursor.execute("""
-                INSERT OR REPLACE INTO solicitudes_intake 
-                (solicitud_id, programa_ref, texto_crudo, fecha_recepcion, status_actual)
-                VALUES (?, ?, ?, ?, ?);
+                INSERT INTO solicitudes_intake (solicitud_id, programa_ref, texto_crudo, fecha_recepcion, status_actual) VALUES (?, ?, ?, ?, ?) ON CONFLICT(solicitud_id) DO UPDATE SET programa_ref=excluded.programa_ref, texto_crudo=excluded.texto_crudo, status_actual=excluded.status_actual;
             """, (payload.solicitud_id, payload.programa_ref, cs.encrypt(payload.texto_formulario.encode()).decode(), fecha_actual, "processing"))
             conn.commit()
         logger.info(f"🟢 [DATABASE-POST-INTAKE] Solicitud {payload.solicitud_id} registrada con exito en estado: processing")
