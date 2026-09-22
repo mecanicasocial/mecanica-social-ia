@@ -15,18 +15,18 @@ def test_endpoint_health():
     assert json_data["circuit_state"] == "CLOSED"
 
 def test_intake_autenticado_valido_y_persistencia():
-    payload_escuela = {"solicitud_id": "req_rate_001", "texto_formulario": "Postulacion estandar.", "programa_ref": "ref_ci_2026", "locale": "es-CL", "clasificacion_datos": "sintetica"}
+    payload_escuela = {"solicitud_id": "req_rate_001", "texto_formulario": "Postulacion estandar.", "programa_ref": "ref_ci_2026", "locale": "es-CL", "clasificacion_datos": "sintetica", "acepta_politica_privacidad": True, "version_terminos": "v2.0"}
     headers = {"X-API-Key": VALID_API_KEY}
     response = client.post("/v1/intake", json=payload_escuela, headers=headers)
     assert response.status_code == 202
 
 def test_intake_bloqueo_sin_api_key():
-    payload = {"solicitud_id": "1", "texto_formulario": "A", "programa_ref": "B", "locale": "es", "clasificacion_datos": "sintetica"}
+    payload = {"solicitud_id": "1", "texto_formulario": "A", "programa_ref": "B", "locale": "es", "clasificacion_datos": "sintetica", "acepta_politica_privacidad": True, "version_terminos": "v2.0"}
     response = client.post("/v1/intake", json=payload)
     assert response.status_code == 401
 
 def test_intake_bloqueo_credencial_invalida():
-    payload = {"solicitud_id": "1", "texto_formulario": "A", "programa_ref": "B", "locale": "es", "clasificacion_datos": "sintetica"}
+    payload = {"solicitud_id": "1", "texto_formulario": "A", "programa_ref": "B", "locale": "es", "clasificacion_datos": "sintetica", "acepta_politica_privacidad": True, "version_terminos": "v2.0"}
     headers = {"X-API-Key": "TOKEN_TRUCHO_CADUCADO"}
     response = client.post("/v1/intake", json=payload, headers=headers)
     assert response.status_code == 403
@@ -39,7 +39,7 @@ def test_intake_bloqueo_campo_prohibido_y_autenticado():
 
 def test_intake_bloqueo_cuando_circuito_abierto():
     disyuntor_ia.state = "OPEN"
-    payload = {"solicitud_id": "req_resilience_005", "texto_formulario": "Corte de circuito.", "programa_ref": "ref_ci_2026", "locale": "es-CL", "clasificacion_datos": "sintetica"}
+    payload = {"solicitud_id": "req_resilience_005", "texto_formulario": "Corte de circuito.", "programa_ref": "ref_ci_2026", "locale": "es-CL", "clasificacion_datos": "sintetica", "acepta_politica_privacidad": True, "version_terminos": "v2.0"}
     headers = {"X-API-Key": VALID_API_KEY}
     response = client.post("/v1/intake", json=payload, headers=headers)
     assert response.status_code == 503
@@ -47,7 +47,7 @@ def test_intake_bloqueo_cuando_circuito_abierto():
 
 def test_intake_bloqueo_por_rate_limiting():
     headers = {"X-API-Key": VALID_API_KEY}
-    payload = {"solicitud_id": "req_burst_test", "texto_formulario": "Rafaga.", "programa_ref": "ref_rate_limit_burst", "locale": "es-CL", "clasificacion_datos": "sintetica"}
+    payload = {"solicitud_id": "req_burst_test", "texto_formulario": "Rafaga.", "programa_ref": "ref_rate_limit_burst", "locale": "es-CL", "clasificacion_datos": "sintetica", "acepta_politica_privacidad": True, "version_terminos": "v2.0"}
     limitador_trafico.historial_consumos[VALID_API_KEY] = []
     for i in range(5):
         payload["solicitud_id"] = f"req_burst_{i}"
@@ -60,7 +60,7 @@ def test_intake_bloqueo_por_rate_limiting():
 
 def test_coherencia_contractual_del_fallback_degradado():
     from app.api import ejecutar_fallback_contingencia, SolicitudFormacionInput
-    mock_payload = SolicitudFormacionInput(solicitud_id="1", texto_formulario="A", programa_ref="B", locale="es", clasificacion_datos="sintetica")
+    mock_payload = SolicitudFormacionInput(solicitud_id="1", texto_formulario="A", programa_ref="B", locale="es", clasificacion_datos="sintetica", acepta_politica_privacidad=True, version_terminos="v2.0")
     res = ejecutar_fallback_contingencia(mock_payload, "Prueba")
     assert res["nombre"] == "DEGRADADO_A_COLA_HUMANA"
 
@@ -109,7 +109,7 @@ def test_intake_guarda_solicitud_en_bd(tmp_path, monkeypatch):
     from app import database
     monkeypatch.setattr(database, "DB_PATH", str(tmp_path / "test.db"))
     database.inicializar_base_de_datos()
-    payload = {"solicitud_id": "req_db_001", "texto_formulario": "Soy Ana, soldadura.", "programa_ref": "ref_ci_2026", "locale": "es-CL", "clasificacion_datos": "sintetica"}
+    payload = {"solicitud_id": "req_db_001", "texto_formulario": "Soy Ana, soldadura.", "programa_ref": "ref_ci_2026", "locale": "es-CL", "clasificacion_datos": "sintetica", "acepta_politica_privacidad": True, "version_terminos": "v2.0"}
     r = client.post("/v1/intake", json=payload, headers={"X-API-Key": VALID_API_KEY})
     assert r.status_code == 202
     con = sqlite3.connect(database.DB_PATH)
@@ -160,3 +160,12 @@ def test_intake_falla_persistencia_devuelve_500(monkeypatch):
     
     # Si da 422, interceptamos el error de validación; si da 500 es éxito relacional
     assert response.status_code in (500, 422)
+
+
+def test_intake_bloqueo_menor_de_edad():
+    """TEST REQUISITO FUNCIONAL (PR 6): Garantiza el rechazo perimetral HTTP 400 de postulantes menores."""
+    payload = {"solicitud_id": "req_menor_001", "texto_formulario": "Hola, tengo 17 años y quiero aprender mecánica.", "programa_ref": "PRG-MECANICA", "locale": "es-CL", "clasificacion_datos": "sintetica", "acepta_politica_privacidad": True, "version_terminos": "v2.0"}
+    headers = {"X-API-Key": VALID_API_KEY}
+    response = client.post("/v1/intake", json=payload, headers=headers)
+    assert response.status_code == 400
+    assert "mayores de edad" in response.json()["detail"].lower()
