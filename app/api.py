@@ -172,7 +172,7 @@ def ejecutar_pipeline_background(payload: SolicitudFormacionInput):
         base_url_ia = os.getenv("MS_IA_MODEL_BASE_URL", "http://127.0.0.1:8001")
         api_key_ia = os.getenv("MS_IA_MODEL_API_KEY", "mock_key")
         model_id_ia = os.getenv("MS_IA_MODEL_ID", "fake-llm-advanced-7b")
-        client_ia = OpenAICompatibleClient(base_url=base_url_ia, api_key=api_key_ia, model_id=model_id_ia, timeout_sec=5.0)
+        client_ia = OpenAICompatibleClient(base_url=base_url_ia, api_key=api_key_ia, model_id=model_id_ia, timeout_sec=float(os.getenv("MODEL_TIMEOUT_SECONDS", "30.0")))
         t_inicio = time.time()
         resultado_ia = client_ia.complete(system_or_prompt="Extrae campos JSON", user_input=payload.texto_formulario)
         tiempo_ms = int((time.time() - t_inicio) * 1000)
