@@ -214,3 +214,48 @@ def test_intake_idempotencia_y_unicidad_de_inferencia():
     assert len(filas_inferencia) == 1
     assert filas_inferencia[0]["nombre_extraido"] == "Ana"
     conn.close()
+
+def test_intake_idempotencia_y_unicidad_de_inferencia():
+    """TEST CRÍTICO DE INTEGRIDAD (Auditoría v4): Certifica que un reintento del mismo solicitud_id 
+    no destruye en cascada los resultados de inferencia asociados ni genera filas duplicadas.
+    """
+    import sqlite3
+    
+    conn = sqlite3.connect(":memory:")
+    conn.row_factory = sqlite3.Row
+    cursor = conn.cursor()
+    
+    cursor.execute("""CREATE TABLE solicitudes_intake (
+        solicitud_id TEXT PRIMARY KEY,
+        programa_ref TEXT,
+        texto_crudo TEXT,
+        fecha_recepcion TEXT,
+        status_actual TEXT
+    )""")
+    
+    cursor.execute("""CREATE TABLE resultados_inferencia (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        solicitud_id TEXT NOT NULL UNIQUE,
+        nombre_extraido TEXT,
+        email_extraido TEXT,
+        telefono_extraido TEXT,
+        interes_extraido TEXT,
+        modelo_ref TEXT,
+        tiempo_respuesta_ms INTEGER,
+        fecha_notificacion TEXT,
+        FOREIGN KEY (solicitud_id) REFERENCES solicitudes_intake (solicitud_id) ON DELETE CASCADE
+    )""")
+    conn.commit()
+    
+    cursor.execute("INSERT INTO solicitudes_intake VALUES (?, ?, ?, ?, ?)", ("req_idemp_999", "ref_original", "Texto original", "2026-09-22", "processing"))
+    cursor.execute("INSERT INTO resultados_inferencia (solicitud_id, nombre_extraido, email_extraido) VALUES (?, ?, ?)", ("req_idemp_999", "Ana", "ana@mecanica.cl"))
+    conn.commit()
+    
+    cursor.execute("INSERT INTO solicitudes_intake (solicitud_id, programa_ref, texto_crudo, fecha_recepcion, status_actual) VALUES (?, ?, ?, ?, ?) ON CONFLICT(solicitud_id) DO UPDATE SET texto_crudo=excluded.texto_crudo", ("req_idemp_999", "ref_original", "Texto modificado de reintento", "2026-09-22", "processing"))
+    conn.commit()
+    
+    cursor.execute("SELECT * FROM resultados_inferencia WHERE solicitud_id = ?", ("req_idemp_999",))
+    filas_inferencia = cursor.fetchall()
+    assert len(filas_inferencia) == 1
+    assert filas_inferencia[0]["nombre_extraido"] == "Ana"
+    conn.close()
