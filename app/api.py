@@ -15,9 +15,11 @@ load_dotenv()
 from cryptography.fernet import Fernet
 import os
 from cryptography.fernet import Fernet
+import os
+from cryptography.fernet import Fernet
 SECRET_CRYPTO_KEY = os.getenv("MS_IA_CRYPTO_KEY")
 if not SECRET_CRYPTO_KEY:
-    raise RuntimeError("Configuración Insegura: Falta la clave de cifrado MS_IA_CRYPTO_KEY en el entorno.")
+    raise RuntimeError("Configuración Insegura: Falta la clave de cifrado MS_IA_CRYPTO_KEY inyectada.")
 if isinstance(SECRET_CRYPTO_KEY, str):
     SECRET_CRYPTO_KEY = SECRET_CRYPTO_KEY.encode()
 cs = Fernet(SECRET_CRYPTO_KEY)
