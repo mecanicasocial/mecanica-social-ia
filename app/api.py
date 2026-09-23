@@ -1,7 +1,13 @@
+import sys
+import os
 import json
 import contextlib
 import random
 import time
+
+# Añade la raíz y la carpeta src de forma dinámica para resolver ms_ia
+sys.path.append(os.path.abspath(os.path.dirname(os.path.dirname(__file__))))
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(os.path.dirname(__file__)), "src")))
 from fastapi import FastAPI, HTTPException, status, Depends, BackgroundTasks
 from pydantic import BaseModel, Field
 from typing import Optional, Literal, Dict
@@ -259,6 +265,13 @@ def health_check():
 def registrar_solicitud_intake(payload: SolicitudFormacionInput, background_tasks: BackgroundTasks, autenticado: bool = Depends(verificar_api_key_escuela)):
     emitir_log_sanitizado(payload, "Interceptando solicitud HTTP")
     
+    # ⚖️ REGLA DE GOBERNANZA: Control de Consentimiento Obligatorio (Auditoría v4)
+    if not payload.acepta_politica_privacidad:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Ingesta rechazada: Es mandatorio aceptar la politica de privacidad para procesar el formulario."
+        )
+
     # 🔞 REGLA DE PRODUCTO: Declaración y control perimetral de edad y datos sensibles (Ley 21.719)
     texto_analizar = payload.texto_formulario.lower()
     

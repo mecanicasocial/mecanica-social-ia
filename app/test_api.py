@@ -117,7 +117,7 @@ def test_intake_guarda_solicitud_en_bd(tmp_path, monkeypatch):
     con.close()
     assert fila is not None
 
-@pytest.mark.xfail(reason="Consentimiento aun no implementado en la API (hallazgo A2)", strict=True)
+# ", strict=True)
 def test_intake_bloqueo_por_falta_de_consentimiento():
     payload = {"solicitud_id": "req_bloqueo_legal_001", "texto_formulario": "No acepto", "programa_ref": "PRG-MECANICA", "locale": "es-CL", "clasificacion_datos": "sintetica", "acepta_politica_privacidad": False, "version_terminos": "v2.0"}
     response = client.post("/v1/intake", json=payload, headers={"X-API-Key": VALID_API_KEY})
