@@ -167,12 +167,34 @@ def disparar_notificacion_int002(solicitud_id: str, resultado_ia: dict, meta_ia:
             logger.warning(f"[INT-002-RETRY_GATE] Intento {intento} fallido con error: Simulación HTTP")
             if intento == max_reintentos: return
             time.sleep(max(0.1, (base_espera * (2 ** intento)) + random.uniform(-0.5, 0.5)))
+import yaml
+
+def cargar_prompt_intake_versionado() -> tuple[str, str]:
+    """Lee el archivo de prompts versionado de la ONG y devuelve el prompt_text junto con su versión.
+    Mitigación del Issue 3 (Auditoría v4) para erradicar prompts hardcodeados.
+    """
+    ruta_yaml = "prompts/formulario-intake-v1.0.0.yaml"
+    fallback_prompt = "Eres un asistente que procesa solicitudes de capacitación. Extrae: nombre, email, teléfono, razón de interés en JSON."
+    fallback_version = "formulario-intake-v1.0.0-fallback"
+    try:
+        with open(ruta_yaml, "r", encoding="utf-8") as f_yaml:
+            datos = yaml.safe_load(f_yaml)
+            prompt = datos.get("prompt_text", fallback_prompt)
+            version = f"{datos.get("id", "formulario-intake")}-v{datos.get("version", "1.0.0")}"
+            return prompt, version
+    except Exception:
+        return fallback_prompt, fallback_version
+
 def ejecutar_pipeline_background(payload: SolicitudFormacionInput):
     import sqlite3
     logger.info(f"[PIPELINE-BACKGROUND] Inicializando extraccion asincrona para {payload.solicitud_id}")
     try:
         if disyuntor_ia.evaluar_estado() == "OPEN":
             raise RuntimeError("Circuito de IA abierto de forma preventiva.")
+        
+        # 🟢 CORRECCIÓN: Inicialización de variables del runtime
+        prompt_plantilla, version_prompt = cargar_prompt_intake_versionado()
+        texto_desencriptado = payload.texto_formulario
                 # Conexión real al cliente OpenAI compatible
         from ms_ia.model_client import OpenAICompatibleClient
         base_url_ia = os.getenv("MS_IA_MODEL_BASE_URL", "http://127.0.0.1:8001")
@@ -180,7 +202,7 @@ def ejecutar_pipeline_background(payload: SolicitudFormacionInput):
         model_id_ia = os.getenv("MS_IA_MODEL_ID", "fake-llm-advanced-7b")
         client_ia = OpenAICompatibleClient(base_url=base_url_ia, api_key=api_key_ia, model_id=model_id_ia, timeout_sec=float(os.getenv("MODEL_TIMEOUT_SECONDS", "30.0")))
         t_inicio = time.time()
-        resultado_ia = client_ia.complete(system_or_prompt="Extrae campos JSON", user_input=payload.texto_formulario)
+        resultado_ia = client_ia.complete(system_or_prompt = prompt_plantilla.replace("{{ texto_formulario }}", texto_desencriptado), user_input=payload.texto_formulario)
         tiempo_ms = int((time.time() - t_inicio) * 1000)
         texto_ia = getattr(resultado_ia, "text", "") or ""
         parsed = json.loads(texto_ia) if texto_ia else {}
@@ -207,7 +229,7 @@ def ejecutar_pipeline_background(payload: SolicitudFormacionInput):
             cursor.execute("UPDATE solicitudes_intake SET status_actual = ? WHERE solicitud_id = ?;", (status_final, payload.solicitud_id))
             cursor.execute("""
                 INSERT INTO resultados_inferencia (solicitud_id, nombre_extraido, email_extraido, telefono_extraido, interes_extraido, modelo_ref, tiempo_respuesta_ms, fecha_notificacion) VALUES (?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT(solicitud_id) DO UPDATE SET nombre_extraido=excluded.nombre_extraido, email_extraido=excluded.email_extraido, telefono_extraido=excluded.telefono_extraido, interes_extraido=excluded.interes_extraido, modelo_ref=excluded.modelo_ref, tiempo_respuesta_ms=excluded.tiempo_respuesta_ms, fecha_notificacion=excluded.fecha_notificacion;
-            """, (payload.solicitud_id, final.get("nombre", "NO_PR"), final.get("email", "NO_PR"), final.get("telefono", "NO_PR"), final.get("interes", "NO_PR"), final["meta"].get("modelo_ref", "FALLBACK"), final["meta"].get("tiempo_respuesta_ms", 0), fecha_notif))
+            """, (payload.solicitud_id, final.get("nombre", "NO_PR"), final.get("email", "NO_PR"), final.get("telefono", "NO_PR"), final.get("interes", "NO_PR"), version_prompt, final["meta"].get("tiempo_respuesta_ms", 0), fecha_notif))
             conn.commit()
         logger.info(f"🟢 [DATABASE-BACKGROUND] Sincronizacion exitosa para {payload.solicitud_id}. Estado: {status_final}")
     except Exception as db_err2:
