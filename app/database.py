@@ -11,12 +11,13 @@ def inicializar_base_de_datos():
     # Aseguramos que la carpeta data/ exista físicamente en el contenedor
     os.makedirs(os.path.dirname(DB_PATH), exist_ok=True)
     
-    conexion = sqlite3.connect(DB_PATH)
+    conexion = sqlite3.connect(DB_PATH, timeout=30.0)
     cursor = conexion.cursor()
     
     try:
         # Habilitamos el soporte mandatorio para claves foráneas en SQLite
         cursor.execute("PRAGMA foreign_keys = ON;")
+        cursor.execute("PRAGMA journal_mode=WAL;")
         
         # 1. Creamos la tabla de seguimiento para el Contrato INT-001
         cursor.execute("""
