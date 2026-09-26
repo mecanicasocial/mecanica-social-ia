@@ -127,15 +127,6 @@ def _extract_text(raw: dict[str, Any]) -> str | None:
 def build_client_from_model_config(model_cfg: dict[str, Any]) -> OpenAICompatibleClient:
     """
     Construye cliente desde models/<id>/config.yaml + entorno.
-
-    Campos esperados (no secretos):
-      provider: openai-compatible
-      model_id: str (o env MS_IA_MODEL_ID)
-      base_url: str opcional público
-      api_key_env: nombre de variable (default MS_IA_MODEL_API_KEY)
-      base_url_env: nombre de variable (default MS_IA_MODEL_BASE_URL)
-      timeout_sec: float
-      api_key_header / api_key_prefix opcionales
     """
     provider = str(model_cfg.get("provider") or "").lower()
     if provider not in {"openai-compatible", "openai_compatible", "openai"}:
@@ -182,18 +173,18 @@ def build_client_from_model_config(model_cfg: dict[str, Any]) -> OpenAICompatibl
         api_key_header=header,
         api_key_prefix=prefix,
     )
+
+
 def validar_contrato_estricto(objeto_salida: dict, campos_requeridos: list) -> bool:
     """Comprueba que estén todos los campos requeridos y NINGUNO extra."""
     if not isinstance(objeto_salida, dict):
         return False
-    
-    # 1. Comprobar que no falte ninguna de las llaves obligatorias
+
     for campo in campos_requeridos:
         if campo not in objeto_salida:
             return False
-            
-    # 2. Comprobar que no existan llaves extras (Inyecciones de datos)
+
     if len(objeto_salida.keys()) > len(campos_requeridos):
         return False
-        
+
     return True
