@@ -3,12 +3,12 @@ version: 1.0.0
 estado: prueba
 autor: "@LeodanZapata"
 fecha_creacion: 2026-09-06
-fecha_revision: 2026-09-10
+fecha_revision: 2026-10-01
 
 proposito: |
   Procesar solicitudes de participación en programas de formación
-  y extraer información estructurada de beneficiarios (casos sintéticos
-  de prueba; no uso operativo hasta evaluación con modelo y aprobación).
+  y extraer información estructurada de beneficiarios, incluyendo la
+  calificación preliminar de criterios de admisión (40/30/30).
 
 alcance: ejemplo-no-operativo
 
@@ -21,6 +21,7 @@ datos_permitidos:
   - Email
   - Teléfono
   - Motivación
+  - Calificaciones de criterios de admisión (misión, tiempo, territorio)
 
 datos_prohibidos:
   - Datos bancarios
@@ -40,38 +41,31 @@ limitaciones_conocidas:
   - El modo offline del harness solo valida estructura, no extracción real
 
 prompt_text: |
-  Eres un asistente que procesa solicitudes de capacitación.
+  Analiza el texto libre de motivación del postulante y extrae la información en un objeto JSON con las siguientes claves exactas:
+  - "nombre": Nombre completo del postulante.
+  - "email": Correo electrónico.
+  - "telefono": Teléfono de contacto.
+  - "interes": Área temática de interés manifestada.
+  - "alineacion_mision": Calificación entera de 0 a 4 sobre su compromiso con objetivos cívicos/transformación social.
+  - "disponibilidad_tiempo": Calificación entera de 0 a 4 sobre su tiempo disponible implícito o explícito.
+  - "impacto_territorial": Calificación entera de 0 a 4 sobre el alcance (barrial, municipal o regional) de su propuesta.
 
-  Tu tarea:
-  1. Extrae: nombre, email, teléfono, razón de interés
-  2. Estructura la salida en JSON
-  3. Marca campos faltantes con "NO_PROPORCIONADO"
-
-  NUNCA:
-  - Inventes información
-  - Edites el formato de email/teléfono
-  - Hables de dinero o costos
-
-  Input: {{ texto_formulario }}
-  Output format:
-  {
-    "nombre": "...",
-    "email": "...",
-    "telefono": "...",
-    "interes": "..."
-  }
+  Devuelve únicamente el objeto JSON crudo, sin bloques de código ni texto adicional.
 
 ejemplos:
   - input: |
       Hola, me llamo Carlos. Quiero participar en el programa de
       liderazgo. Mi correo es carlos.ejemplo@mail.test y mi teléfono es
-      +56 9 1000 0001.
+      +56 9 1000 0001. Tengo alta disponibilidad.
     expected: |
       {
         "nombre": "Carlos",
         "email": "carlos.ejemplo@mail.test",
         "telefono": "+56 9 1000 0001",
-        "interes": "Programa de liderazgo"
+        "interes": "Programa de liderazgo",
+        "alineacion_mision": 2,
+        "disponibilidad_tiempo": 4,
+        "impacto_territorial": 2
       }
 
 evaluacion:
@@ -83,7 +77,7 @@ evaluacion:
     - tipo: coherencia_estructura
       objetivo: "100%"
       metodo: JSON válido y campos requeridos en todas las respuestas
-  evidencia_formal: offline-estructural  # no basta para promoción operativa
+  evidencia_formal: offline-estructural
   criterios_aceptacion:
     - "Todos los campos requeridos presentes"
     - "No hay respuestas vacías cuando info disponible"
@@ -104,8 +98,11 @@ revisiones:
     aprobado_por: null
   - fecha: 2026-09-10
     version: 1.0.0
-    cambio: |
-      Estado rebajado a prueba; riesgo medio por PII potencial;
-      metadatos y supervisión alineados a gobernanza; sin aprobación operativa.
+    cambio: "Estado rebajado a prueba; riesgo medio por PII potencial."
     revisado_por: "Auditoría práctica MVP"
+    aprobado_por: null
+  - fecha: 2026-10-01
+    version: 1.0.0
+    cambio: "Ampliación de campos para extracción de criterios de admisión (Paso 1)."
+    revisado_por: "Sanidad de Gobernanza"
     aprobado_por: null
