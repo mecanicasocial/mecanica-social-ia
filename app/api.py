@@ -247,13 +247,23 @@ def ejecutar_pipeline_background(payload: SolicitudFormacionInput):
     try:
         fecha_notif = time.strftime("%Y-%m-%d %H:%M:%S")
         status_final = final["meta"].get("status_proceso", "completed")
+        from ms_ia.evaluacion import calcular_puntaje_ponderado
+        try:
+            resultado_puntaje = calcular_puntaje_ponderado(
+                final.get("alineacion_mision"),
+                final.get("disponibilidad_tiempo"),
+                final.get("impacto_territorial"),
+            )
+        except ValueError as err_puntaje:
+            logger.error(f"🔴 [EVALUACION] Criterio fuera de rango, forzando revision: {err_puntaje}")
+            resultado_puntaje = {"puntaje_ponderado": None, "veredicto": "REVISION_REQUERIDA"}
         with sqlite3.connect(db_mod.DB_PATH) as conn:
             cursor = conn.cursor()
             cursor.execute("PRAGMA foreign_keys = ON;")
             cursor.execute("UPDATE solicitudes_intake SET status_actual = ? WHERE solicitud_id = ?;", (status_final, payload.solicitud_id))
             cursor.execute("""
-                INSERT INTO resultados_inferencia (solicitud_id, nombre_extraido, email_extraido, telefono_extraido, interes_extraido, modelo_ref, tiempo_respuesta_ms, fecha_notificacion) VALUES (?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT(solicitud_id) DO UPDATE SET nombre_extraido=excluded.nombre_extraido, email_extraido=excluded.email_extraido, telefono_extraido=excluded.telefono_extraido, interes_extraido=excluded.interes_extraido, modelo_ref=excluded.modelo_ref, tiempo_respuesta_ms=excluded.tiempo_respuesta_ms, fecha_notificacion=excluded.fecha_notificacion;
-            """, (payload.solicitud_id, final.get("nombre", "NO_PR"), final.get("email", "NO_PR"), final.get("telefono", "NO_PR"), final.get("interes", "NO_PR"), version_prompt, final["meta"].get("tiempo_respuesta_ms", 0), fecha_notif))
+                INSERT INTO resultados_inferencia (solicitud_id, nombre_extraido, email_extraido, telefono_extraido, interes_extraido, modelo_ref, tiempo_respuesta_ms, fecha_notificacion, alineacion_mision, disponibilidad_tiempo, impacto_territorial, puntaje_ponderado, veredicto) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT(solicitud_id) DO UPDATE SET nombre_extraido=excluded.nombre_extraido, email_extraido=excluded.email_extraido, telefono_extraido=excluded.telefono_extraido, interes_extraido=excluded.interes_extraido, modelo_ref=excluded.modelo_ref, tiempo_respuesta_ms=excluded.tiempo_respuesta_ms, fecha_notificacion=excluded.fecha_notificacion, alineacion_mision=excluded.alineacion_mision, disponibilidad_tiempo=excluded.disponibilidad_tiempo, impacto_territorial=excluded.impacto_territorial, puntaje_ponderado=excluded.puntaje_ponderado, veredicto=excluded.veredicto;
+            """, (payload.solicitud_id, final.get("nombre", "NO_PR"), final.get("email", "NO_PR"), final.get("telefono", "NO_PR"), final.get("interes", "NO_PR"), version_prompt, final["meta"].get("tiempo_respuesta_ms", 0), fecha_notif, final.get("alineacion_mision"), final.get("disponibilidad_tiempo"), final.get("impacto_territorial"), resultado_puntaje["puntaje_ponderado"], resultado_puntaje["veredicto"]))
             conn.commit()
         logger.info(f"🟢 [DATABASE-BACKGROUND] Sincronizacion exitosa para {payload.solicitud_id}. Estado: {status_final}")
     except Exception as db_err2:
