@@ -79,7 +79,7 @@ def test_webhook_en_desarrollo_no_realiza_llamada_http_externa(monkeypatch):
 def test_int002_notificacion_esquema_valido(tmp_path, monkeypatch):
     monkeypatch.setenv("AMBIENTE", "development")
     from app.api import disparar_notificacion_int002
-    disparar_notificacion_int002("id", {"nombre":"A","email":"B","telefono":"C","interes":"D"}, {"componente_id":"A","componente_version":"B","modelo_ref":"C","requiere_revision_humana":True,"status_proceso":"completed","tiempo_respuesta_ms":10})
+    disparar_notificacion_int002("id", {"nombre":"A","email":"B","telefono":"C","interes":"D","evaluacion":{"puntaje_ponderado":3.2,"veredicto":"RECOMENDADO_PARA_COMITE"}}, {"componente_id":"A","componente_version":"B","modelo_ref":"C","requiere_revision_humana":True,"status_proceso":"completed","tiempo_respuesta_ms":10})
 
 def test_int002_notificacion_bloqueo_por_campo_ausente(monkeypatch):
     from app.api import disparar_notificacion_int002
@@ -90,7 +90,7 @@ def test_produccion_sin_notificacion_url_lanza_error_controlado_int002(monkeypat
     monkeypatch.delenv("ESCUELA_NOTIFICACION_URL", raising=False)
     from app.api import disparar_notificacion_int002
     with pytest.raises(RuntimeError):
-        disparar_notificacion_int002("id", {"nombre":"A","email":"B","telefono":"C","interes":"D"}, {"componente_id":"A","componente_version":"B","modelo_ref":"C","requiere_revision_humana":True,"status_proceso":"completed","tiempo_respuesta_ms":10})
+        disparar_notificacion_int002("id", {"nombre":"A","email":"B","telefono":"C","interes":"D","evaluacion":{"puntaje_ponderado":3.2,"veredicto":"RECOMENDADO_PARA_COMITE"}}, {"componente_id":"A","componente_version":"B","modelo_ref":"C","requiere_revision_humana":True,"status_proceso":"completed","tiempo_respuesta_ms":10})
 
 def test_int002_secuencia_reintentos_ante_error_servidor(monkeypatch):
     monkeypatch.setattr(time, "sleep", lambda x: None)
@@ -102,7 +102,7 @@ def test_int002_secuencia_reintentos_ante_error_servidor(monkeypatch):
     from app.api import disparar_notificacion_int002
     monkeypatch.setenv("AMBIENTE", "production")
     monkeypatch.setenv("ESCUELA_NOTIFICACION_URL", "http://test/webhook")
-    disparar_notificacion_int002("id", {"nombre":"A","email":"B","telefono":"C","interes":"D"}, {"componente_id":"A","componente_version":"B","modelo_ref":"C","requiere_revision_humana":True,"status_proceso":"completed","tiempo_respuesta_ms":10})
+    disparar_notificacion_int002("id", {"nombre":"A","email":"B","telefono":"C","interes":"D","evaluacion":{"puntaje_ponderado":3.2,"veredicto":"RECOMENDADO_PARA_COMITE"}}, {"componente_id":"A","componente_version":"B","modelo_ref":"C","requiere_revision_humana":True,"status_proceso":"completed","tiempo_respuesta_ms":10})
 
 def test_intake_guarda_solicitud_en_bd(tmp_path, monkeypatch):
     import sqlite3

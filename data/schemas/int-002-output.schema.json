@@ -3,27 +3,84 @@
   "title": "NotificationOutputContract",
   "type": "object",
   "properties": {
-    "solicitud_id": { "type": "string" },
+    "solicitud_id": {
+      "type": "string"
+    },
     "resultado": {
       "type": "object",
       "properties": {
-        "nombre": { "type": "string" },
-        "email": { "type": "string" },
-        "telefono": { "type": "string" },
-        "interes": { "type": "string" }
+        "nombre": {
+          "type": "string"
+        },
+        "email": {
+          "type": "string"
+        },
+        "telefono": {
+          "type": "string"
+        },
+        "interes": {
+          "type": "string"
+        },
+        "evaluacion": {
+          "type": "object",
+          "properties": {
+            "puntaje_ponderado": {
+              "type": [
+                "number",
+                "null"
+              ]
+            },
+            "veredicto": {
+              "type": "string",
+              "enum": [
+                "RECOMENDADO_PARA_COMITE",
+                "REVISION_REQUERIDA"
+              ]
+            }
+          },
+          "required": [
+            "puntaje_ponderado",
+            "veredicto"
+          ],
+          "additionalProperties": false
+        }
       },
-      "required": ["nombre", "email", "telefono", "interes"],
+      "required": [
+        "nombre",
+        "email",
+        "telefono",
+        "interes",
+        "evaluacion"
+      ],
       "additionalProperties": false
     },
     "meta": {
       "type": "object",
       "properties": {
-        "componente_id": { "type": "string" },
-        "componente_version": { "type": "string" },
-        "modelo_ref": { "type": ["string", "null"] },
-        "requiere_revision_humana": { "type": "boolean" },
-        "tiempo_respuesta_ms": { "type": ["integer", "null"] },
-        "status_proceso": { "type": "string" }
+        "componente_id": {
+          "type": "string"
+        },
+        "componente_version": {
+          "type": "string"
+        },
+        "modelo_ref": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "requiere_revision_humana": {
+          "type": "boolean"
+        },
+        "tiempo_respuesta_ms": {
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "status_proceso": {
+          "type": "string"
+        }
       },
       "required": [
         "componente_id",
@@ -36,6 +93,10 @@
       "additionalProperties": false
     }
   },
-  "required": ["solicitud_id", "resultado", "meta"],
+  "required": [
+    "solicitud_id",
+    "resultado",
+    "meta"
+  ],
   "additionalProperties": false
 }

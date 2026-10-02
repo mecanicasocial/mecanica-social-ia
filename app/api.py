@@ -269,7 +269,12 @@ def ejecutar_pipeline_background(payload: SolicitudFormacionInput):
     except Exception as db_err2:
         logger.error(f"🔴 [DATABASE-BACKGROUND] Error al persistir resultados: {str(db_err2)}")
     disparar_webhook_escuela(payload.solicitud_id, final)
-    resultado_puro = {k: v for k, v in final.items() if k != "meta"}
+    campos_criterios = ("alineacion_mision", "disponibilidad_tiempo", "impacto_territorial")
+    resultado_puro = {k: v for k, v in final.items() if k != "meta" and k not in campos_criterios}
+    resultado_puro["evaluacion"] = {
+        "puntaje_ponderado": resultado_puntaje["puntaje_ponderado"],
+        "veredicto": resultado_puntaje["veredicto"],
+    }
     disparar_notificacion_int002(payload.solicitud_id, resultado_puro, final["meta"])
 
 @app.get("/v1/intake/{solicitud_id}")
