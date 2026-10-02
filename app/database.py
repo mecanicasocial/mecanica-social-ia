@@ -41,6 +41,11 @@ def inicializar_base_de_datos():
                 modelo_ref TEXT NOT NULL,
                 tiempo_respuesta_ms INTEGER,
                 fecha_notificacion TEXT NOT NULL,
+                alineacion_mision INTEGER,
+                disponibilidad_tiempo INTEGER,
+                impacto_territorial INTEGER,
+                puntaje_ponderado REAL,
+                veredicto TEXT,
                 solicitud_id TEXT NOT NULL UNIQUE,
             FOREIGN KEY (solicitud_id) REFERENCES solicitudes_intake (solicitud_id) ON DELETE CASCADE
             );
