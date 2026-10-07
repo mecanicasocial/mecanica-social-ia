@@ -75,6 +75,7 @@ class PerimetralRateLimiter:
         return True
 
 limitador_trafico = PerimetralRateLimiter(5, 60.0)
+limitador_publico = PerimetralRateLimiter(3, 300.0)  # 3 solicitudes cada 5 min, por IP, sin autenticacion
 
 class IA_CircuitBreaker:
     def __init__(self, failure_threshold: int = 3, recovery_timeout: float = 30.0):
