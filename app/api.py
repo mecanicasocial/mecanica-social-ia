@@ -296,8 +296,8 @@ def obtener_registro_intake(solicitud_id: str, autenticado: bool = Depends(verif
 def health_check():
     return {"status": "healthy", "version": "2.2.0", "circuit_state": disyuntor_ia.evaluar_estado()}
 
-@app.post("/v1/intake", response_model=ExtraccionFormacionOutput, status_code=status.HTTP_202_ACCEPTED)
-def registrar_solicitud_intake(payload: SolicitudFormacionInput, background_tasks: BackgroundTasks, autenticado: bool = Depends(verificar_api_key_escuela)):
+def _validar_y_registrar_solicitud(payload: SolicitudFormacionInput, background_tasks: BackgroundTasks) -> ExtraccionFormacionOutput:
+    """Validaciones y persistencia comunes a cualquier via de ingreso (Escuela o publico)."""
     emitir_log_sanitizado(payload, "Interceptando solicitud HTTP")
 
     if not payload.acepta_politica_privacidad:
@@ -320,9 +320,6 @@ def registrar_solicitud_intake(payload: SolicitudFormacionInput, background_task
     if disyuntor_ia.evaluar_estado() == "OPEN":
         raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="Circuito de Inteligencia Artificial abierto de forma preventiva.")
 
-    if not limitador_trafico.verificar_limite(autenticado):
-        raise HTTPException(status_code=status.HTTP_429_TOO_MANY_REQUESTS, detail="Tasa de solicitudes excedida")
-
     import sqlite3
     try:
         fecha_actual = time.strftime("%Y-%m-%d %H:%M:%S")
@@ -342,3 +339,10 @@ def registrar_solicitud_intake(payload: SolicitudFormacionInput, background_task
         )
     background_tasks.add_task(ejecutar_pipeline_background, payload)
     return ExtraccionFormacionOutput(solicitud_id=payload.solicitud_id)
+
+
+@app.post("/v1/intake", response_model=ExtraccionFormacionOutput, status_code=status.HTTP_202_ACCEPTED)
+def registrar_solicitud_intake(payload: SolicitudFormacionInput, background_tasks: BackgroundTasks, autenticado: bool = Depends(verificar_api_key_escuela)):
+    if not limitador_trafico.verificar_limite(autenticado):
+        raise HTTPException(status_code=status.HTTP_429_TOO_MANY_REQUESTS, detail="Tasa de solicitudes excedida")
+    return _validar_y_registrar_solicitud(payload, background_tasks)
