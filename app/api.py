@@ -1,4 +1,5 @@
 import sys
+import uuid
 import os
 import json
 import contextlib
@@ -13,7 +14,7 @@ import httpx
 sys.path.append(os.path.abspath(os.path.dirname(os.path.dirname(__file__))))
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(os.path.dirname(__file__)), "src")))
 
-from fastapi import FastAPI, HTTPException, status, Depends, BackgroundTasks
+from fastapi import FastAPI, HTTPException, status, Depends, BackgroundTasks, Request, Response
 from pydantic import BaseModel, Field
 from typing import Optional, Literal, Dict
 from dotenv import load_dotenv
@@ -75,6 +76,7 @@ class PerimetralRateLimiter:
         return True
 
 limitador_trafico = PerimetralRateLimiter(5, 60.0)
+limitador_publico = PerimetralRateLimiter(3, 300.0)  # 3 solicitudes cada 5 min, por IP, sin autenticacion
 
 class IA_CircuitBreaker:
     def __init__(self, failure_threshold: int = 3, recovery_timeout: float = 30.0):
@@ -124,6 +126,13 @@ class SolicitudFormacionInput(BaseModel):
     clasificacion_datos: Literal["sintetica", "publica", "autorizada"] = Field(..., description="Datos.")
     acepta_politica_privacidad: bool = Field(..., description="Consentimiento legal mandatorio.")
     version_terminos: str = Field(..., description="Version terminos.")
+    model_config = {"extra": "forbid"}
+
+class PostulacionPublicaInput(BaseModel):
+    texto_formulario: str = Field(..., description="Texto libre de motivacion del postulante.")
+    acepta_politica_privacidad: bool = Field(..., description="Consentimiento legal mandatorio.")
+    version_terminos: str = Field(..., description="Version de los terminos aceptados.")
+    locale: str = Field(default="es-CL", description="Locale del postulante.")
     model_config = {"extra": "forbid"}
 
 class MetaSalida(BaseModel):
@@ -295,8 +304,8 @@ def obtener_registro_intake(solicitud_id: str, autenticado: bool = Depends(verif
 def health_check():
     return {"status": "healthy", "version": "2.2.0", "circuit_state": disyuntor_ia.evaluar_estado()}
 
-@app.post("/v1/intake", response_model=ExtraccionFormacionOutput, status_code=status.HTTP_202_ACCEPTED)
-def registrar_solicitud_intake(payload: SolicitudFormacionInput, background_tasks: BackgroundTasks, autenticado: bool = Depends(verificar_api_key_escuela)):
+def _validar_y_registrar_solicitud(payload: SolicitudFormacionInput, background_tasks: BackgroundTasks) -> ExtraccionFormacionOutput:
+    """Validaciones y persistencia comunes a cualquier via de ingreso (Escuela o publico)."""
     emitir_log_sanitizado(payload, "Interceptando solicitud HTTP")
 
     if not payload.acepta_politica_privacidad:
@@ -319,9 +328,6 @@ def registrar_solicitud_intake(payload: SolicitudFormacionInput, background_task
     if disyuntor_ia.evaluar_estado() == "OPEN":
         raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="Circuito de Inteligencia Artificial abierto de forma preventiva.")
 
-    if not limitador_trafico.verificar_limite(autenticado):
-        raise HTTPException(status_code=status.HTTP_429_TOO_MANY_REQUESTS, detail="Tasa de solicitudes excedida")
-
     import sqlite3
     try:
         fecha_actual = time.strftime("%Y-%m-%d %H:%M:%S")
@@ -341,3 +347,43 @@ def registrar_solicitud_intake(payload: SolicitudFormacionInput, background_task
         )
     background_tasks.add_task(ejecutar_pipeline_background, payload)
     return ExtraccionFormacionOutput(solicitud_id=payload.solicitud_id)
+
+
+@app.post("/v1/intake", response_model=ExtraccionFormacionOutput, status_code=status.HTTP_202_ACCEPTED)
+def registrar_solicitud_intake(payload: SolicitudFormacionInput, background_tasks: BackgroundTasks, autenticado: bool = Depends(verificar_api_key_escuela)):
+    if not limitador_trafico.verificar_limite(autenticado):
+        raise HTTPException(status_code=status.HTTP_429_TOO_MANY_REQUESTS, detail="Tasa de solicitudes excedida")
+    return _validar_y_registrar_solicitud(payload, background_tasks)
+
+
+ORIGEN_PUBLICO_PERMITIDO = "https://mecanicasocial.github.io"
+
+@app.post("/v1/postulacion-publica", status_code=status.HTTP_202_ACCEPTED)
+def registrar_postulacion_publica(datos: PostulacionPublicaInput, background_tasks: BackgroundTasks, request: Request, response: Response):
+    """Endpoint publico para el sitio de la Escuela. Sin API key; protegido por limite de trafico por IP y CORS."""
+    response.headers["Access-Control-Allow-Origin"] = ORIGEN_PUBLICO_PERMITIDO
+    response.headers["Vary"] = "Origin"
+
+    ip_cliente = request.client.host if request.client else "desconocido"
+    if not limitador_publico.verificar_limite(ip_cliente):
+        raise HTTPException(status_code=status.HTTP_429_TOO_MANY_REQUESTS, detail="Demasiadas solicitudes, intenta nuevamente en unos minutos.")
+
+    payload = SolicitudFormacionInput(
+        solicitud_id=str(uuid.uuid4()),
+        texto_formulario=datos.texto_formulario,
+        programa_ref="admision-publica",
+        locale=datos.locale,
+        clasificacion_datos="publica",
+        acepta_politica_privacidad=datos.acepta_politica_privacidad,
+        version_terminos=datos.version_terminos,
+    )
+    _validar_y_registrar_solicitud(payload, background_tasks)
+    return {"mensaje": "Tu postulacion fue recibida. El equipo de Mecanica Social la revisara pronto."}
+
+
+@app.options("/v1/postulacion-publica")
+def preflight_postulacion_publica(response: Response):
+    response.headers["Access-Control-Allow-Origin"] = ORIGEN_PUBLICO_PERMITIDO
+    response.headers["Access-Control-Allow-Methods"] = "POST, OPTIONS"
+    response.headers["Access-Control-Allow-Headers"] = "Content-Type"
+    return {}
