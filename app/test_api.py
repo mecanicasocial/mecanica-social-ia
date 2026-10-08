@@ -370,3 +370,10 @@ def test_postulacion_publica_limite_de_trafico_mas_estricto(monkeypatch):
 
     r = client.post("/v1/postulacion-publica", json=payload)
     assert r.status_code == 429
+
+
+def test_postulacion_publica_preflight_cors():
+    r = client.options("/v1/postulacion-publica")
+    assert r.status_code == 200
+    assert r.headers.get("access-control-allow-origin") == "https://mecanicasocial.github.io"
+    assert "POST" in r.headers.get("access-control-allow-methods", "")
