@@ -295,3 +295,78 @@ def test_pipeline_calcula_y_guarda_puntaje_ponderado(tmp_path, monkeypatch):
         assert puntaje is not None and puntaje >= 3.0
     else:
         assert puntaje is None or puntaje < 3.0
+
+
+def test_postulacion_publica_sin_api_key_es_aceptada(tmp_path, monkeypatch):
+    import sqlite3
+    from app import database
+
+    monkeypatch.setattr(database, "DB_PATH", str(tmp_path / "test_publico.db"))
+    database.inicializar_base_de_datos()
+
+    payload = {
+        "texto_formulario": "Soy Ana, quiero aprender soldadura.",
+        "acepta_politica_privacidad": True,
+        "version_terminos": "v2.0",
+    }
+    r = client.post("/v1/postulacion-publica", json=payload)
+    assert r.status_code == 202
+    assert "mensaje" in r.json()
+    assert "X-API-Key" not in r.request.headers
+
+    con = sqlite3.connect(database.DB_PATH)
+    fila = con.execute(
+        "SELECT programa_ref, status_actual FROM solicitudes_intake"
+    ).fetchone()
+    con.close()
+    assert fila is not None
+    assert fila[0] == "admision-publica"
+
+
+def test_postulacion_publica_responde_cors_al_origen_de_escuela():
+    payload = {
+        "texto_formulario": "Texto de prueba.",
+        "acepta_politica_privacidad": True,
+        "version_terminos": "v2.0",
+    }
+    r = client.post("/v1/postulacion-publica", json=payload)
+    assert r.headers.get("access-control-allow-origin") == "https://mecanicasocial.github.io"
+
+
+def test_postulacion_publica_sin_consentimiento_es_rechazada():
+    payload = {
+        "texto_formulario": "No acepto nada.",
+        "acepta_politica_privacidad": False,
+        "version_terminos": "v2.0",
+    }
+    r = client.post("/v1/postulacion-publica", json=payload)
+    assert r.status_code == 400
+
+
+def test_postulacion_publica_rechaza_campos_del_contrato_interno():
+    payload = {
+        "texto_formulario": "Intento enviar campos internos.",
+        "acepta_politica_privacidad": True,
+        "version_terminos": "v2.0",
+        "solicitud_id": "intento-de-colision",
+        "programa_ref": "otro-programa",
+    }
+    r = client.post("/v1/postulacion-publica", json=payload)
+    assert r.status_code == 422
+
+
+def test_postulacion_publica_limite_de_trafico_mas_estricto(monkeypatch):
+    from app.api import limitador_publico
+    limitador_publico.historial_consumos["testclient"] = []
+
+    payload = {
+        "texto_formulario": "Rafaga de prueba.",
+        "acepta_politica_privacidad": True,
+        "version_terminos": "v2.0",
+    }
+    for i in range(3):
+        r = client.post("/v1/postulacion-publica", json=payload)
+        assert r.status_code == 202
+
+    r = client.post("/v1/postulacion-publica", json=payload)
+    assert r.status_code == 429
